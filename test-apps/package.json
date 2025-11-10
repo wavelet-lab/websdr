@@ -1,0 +1,16 @@
+{
+    "name": "@websdr/test-apps",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "test:usb": "tsx usb-test.ts"
+    },
+    "dependencies": {
+        "@websdr/core": "file:../packages/core",
+        "@websdr/frontend-core": "file:../packages/frontend-core"
+    },
+    "devDependencies": {
+        "tsx": "^4.7.0",
+        "typescript": "^5.9.2"
+    }
+}

@@ -1,0 +1,42 @@
+{
+    "name": "@websdr/core",
+    "version": "1.0.0",
+    "description": "This is the core package for WebSDR",
+    "author": "Timur <dtv.comp@gmail.com>",
+    "license": "MIT",
+    "keywords": [],
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "scripts": {
+        "build": "tsc && tsc-alias && tsc-esm-fix",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage"
+    },
+    "devDependencies": {
+        "@types/node": "^24.10.0"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.js"
+        },
+        "./common": {
+            "types": "./dist/common/index.d.ts",
+            "import": "./dist/common/index.js",
+            "require": "./dist/common/index.js"
+        },
+        "./transform": {
+            "types": "./dist/transform/index.d.ts",
+            "import": "./dist/transform/index.js",
+            "require": "./dist/transform/index.js"
+        },
+        "./utils": {
+            "types": "./dist/utils/index.d.ts",
+            "import": "./dist/utils/index.js",
+            "require": "./dist/utils/index.js"
+        }
+    }
+}
