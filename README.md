@@ -4,6 +4,14 @@
 
 ⚠️ This project is under active development. Some features are experimental and APIs may change.
 
+## Supported SDR hardware
+
+Currently supported SDR devices:
+
+1. [Wavelet uSDR](https://docs.wsdr.io/hardware/usdr.html) — can be connected via the [Development Board](https://docs.wsdr.io/hardware/devboard.html) or a [USB adapter](https://docs.wsdr.io/hardware/usbadapter.html).
+2. [Wavelet xSDR](https://docs.wsdr.io/hardware/xsdr.html) — can be connected via the [Development Board](https://docs.wsdr.io/hardware/devboard.html) or a [USB adapter](https://docs.wsdr.io/hardware/usbadapter.html).
+3. [LimeSDR Mini v2](https://limesdr-mini.myriadrf.org/v2.2/) — tested with v2.2; should also work with v2.3 and v2.4.
+
 ## What is WebSDR?
 
 WebSDR contains utilities, UI components, backend modules, and small test apps to make it easier to build browser-based SDR applications and tooling. The primary goal is to enable interaction with SDR devices connected over USB from web applications (via WebUSB), and to provide supporting building blocks for dashboards, demos, and server-side microservices.
