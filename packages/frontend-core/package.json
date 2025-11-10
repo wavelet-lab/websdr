@@ -1,0 +1,54 @@
+{
+    "name": "@websdr/frontend-core",
+    "version": "1.0.0",
+    "description": "This is the core frontend package for WebSDR",
+    "author": "Timur <dtv.comp@gmail.com>",
+    "license": "MIT",
+    "keywords": [],
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "scripts": {
+        "build": "tsc && tsc-alias && tsc-esm-fix",
+        "prebuild": "node ./scripts/prebuild.js",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage"
+    },
+    "dependencies": {
+        "@websdr/core": "^1.0.0",
+        "usb": "^2.16.0"
+    },
+    "devDependencies": {
+        "@types/emscripten": "^1.41.5",
+        "@types/node": "^24.10.0",
+        "@types/w3c-web-usb": "^1.0.13"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.js"
+        },
+        "./common": {
+            "types": "./dist/common/index.d.ts",
+            "import": "./dist/common/index.js",
+            "require": "./dist/common/index.js"
+        },
+        "./control": {
+            "types": "./dist/control/control.d.ts",
+            "import": "./dist/control/control.js",
+            "require": "./dist/control/control.js"
+        },
+        "./services": {
+            "types": "./dist/services/index.d.ts",
+            "import": "./dist/services/index.js",
+            "require": "./dist/services/index.js"
+        },
+        "./webusb": {
+            "types": "./dist/webusb/index.d.ts",
+            "import": "./dist/webusb/index.js",
+            "require": "./dist/webusb/index.js"
+        }
+    }
+}

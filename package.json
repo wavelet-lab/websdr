@@ -1,0 +1,36 @@
+{
+    "name": "websdr",
+    "version": "1.0.0",
+    "description": "WebSDR package",
+    "author": "Timur <dtv.comp@gmail.com>",
+    "license": "MIT",
+    "keywords": [
+        "websdr",
+        "sdr",
+        "wsdr",
+        "wavelet"
+    ],
+    "type": "module",
+    "workspaces": [
+        "./packages/core",
+        "./packages/nestjs-microservice",
+        "./packages/frontend-core",
+        "./packages/vue3-components"
+    ],
+    "scripts": {
+        "build": "npm run build --workspaces",
+        "test": "npm run test --workspaces",
+        "test:all": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage",
+        "test:ui": "vitest --ui"
+    },
+    "devDependencies": {
+        "@vitest/coverage-v8": "^4.0.7",
+        "tsc-alias": "^1.8.16",
+        "tsc-esm-fix": "^3.1.2",
+        "typescript": "^5.9.3",
+        "vite": "^7.2.1",
+        "vitest": "^4.0.7"
+    }
+}
