@@ -1,7 +1,8 @@
-import { WebUsb, DefaultDeviceConfiguration } from './webUsbBase';
+import { DefaultDeviceConfiguration } from './deviceParameters';
+import type { DeviceConfiguration } from './deviceParameters';
+import { WebUsb } from './webUsbBase';
 import type {
-    StreamStatus, RXBuffer, RXDecoderOptions, DeviceConfiguration,
-    TXBuffer, TXResult, TXEncoderOptions
+    StreamStatus, RXBuffer, RXDecoderOptions, TXBuffer, TXResult, TXEncoderOptions,
 } from './webUsbBase';
 import { SDRDevicesIds } from './webUsb';
 import { PromiseHelper } from '@websdr/core/utils';

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ControlWebUsb, WebUsbChannels, WebUsbDirection } from '@/webusb/controlWebUsb';
+import { ControlWebUsb } from '@/webusb/controlWebUsb';
 import { WebUsbManagerMode } from '@/webusb/webUsbManager';
 import { DataType } from '@websdr/core/common';
 
