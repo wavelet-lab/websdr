@@ -1,15 +1,21 @@
-import { WebUsb, DeviceStreamType } from './webUsbBase';
+import { WebUsbDirection, DeviceStreamType } from './deviceParameters';
+import type { DeviceConfiguration } from './deviceParameters';
 import type {
-    WebUsbParams, RXDecoderOptions, RXBuffer, DeviceConfiguration, TXBuffer, TXEncoderOptions
+    WebUsbParams, RXDecoderOptions, RXBuffer, TXBuffer, TXEncoderOptions,
 } from './webUsbBase';
+import { WebUsbWasm } from './webUsbWasm';
 import {
     DataType, COMPLEX_FLOAT_SIZE, COMPLEX_INT16_SIZE
 } from '@websdr/core/common';
+import { registerWebUsbInstance } from './webUsb';
 
 
 const debug_usb_log = false;
 
-export class WebUsbLimeSdr extends WebUsb {
+export class WebUsbLimeSdr extends WebUsbWasm {
+    static VENDOR_ID = 0x0403;
+    static PRODUCT_ID = 0x601f;
+
     static PACKET_SIZE = 4096;
     static HEADER_SIZE = 16;
     static SAMPLES_PER_PACKET = ((WebUsbLimeSdr.PACKET_SIZE - WebUsbLimeSdr.HEADER_SIZE) / COMPLEX_INT16_SIZE);
@@ -25,6 +31,7 @@ export class WebUsbLimeSdr extends WebUsb {
 
     getConfiguration(): DeviceConfiguration {
         return {
+            operationModes: WebUsbDirection.RX_TX,
             defaultSamplesCount: WebUsbLimeSdr.SAMPLES_PER_PACKET * 8,
             rxFrequencyRange: { min: 30e6, max: 3800e6 },
             txFrequencyRange: { min: 30e6, max: 3800e6 },
@@ -119,7 +126,7 @@ export class WebUsbLimeSdr extends WebUsb {
             prevPacketTS = packetTS;
             const samplesCur = Math.min(WebUsbLimeSdr.SAMPLES_PER_PACKET, freeSamples);
             if (samplesCur > 0) {
-                WebUsb.fillData(datatype, output, outBufOffset, DataType.ci16, data.buffer, packetOffset + WebUsbLimeSdr.HEADER_SIZE, samplesCur << 1);
+                WebUsbWasm.fillData(datatype, output, outBufOffset, DataType.ci16, data.buffer, packetOffset + WebUsbLimeSdr.HEADER_SIZE, samplesCur << 1);
                 freeSamples -= samplesCur;
             }
         }
@@ -148,7 +155,7 @@ export class WebUsbLimeSdr extends WebUsb {
         // const viewin = new Int16Array(data.data, data.byteOffset, data.byteLength);
         // console.log('VIEWIN', viewin.length, viewin);
         let output = undefined;
-        const samplesCnt = WebUsb.getSamplesCnt(data.datatype, data.byteLength || data.data.byteLength);
+        const samplesCnt = WebUsbWasm.getSamplesCnt(data.datatype, data.byteLength || data.data.byteLength);
         const bufSize = this.getTXPacketSize(samplesCnt);
         output = opts?.data !== undefined ? opts.data : new ArrayBuffer(bufSize);
         if (output.byteLength < bufSize)
@@ -161,14 +168,14 @@ export class WebUsbLimeSdr extends WebUsb {
         }
         const timestampInc = BigInt(WebUsbLimeSdr.SAMPLES_PER_PACKET);
         const dataOffsetMain = data.byteOffset || 0;
-        const dataOffsetMult = WebUsbLimeSdr.SAMPLES_PER_PACKET * WebUsb.getSampleByteLength(data.datatype);
+        const dataOffsetMult = WebUsbLimeSdr.SAMPLES_PER_PACKET * WebUsbWasm.getSampleByteLength(data.datatype);
         // console.log(`samplesCnt=${samplesCnt}, bufSize=${bufSize}, pktCnt=${pktCnt}`)
         for (let i = 0; i < pktCnt; ++i) {
             const pktOffset = i * WebUsbLimeSdr.PACKET_SIZE;
             const dataOffset = dataOffsetMain + i * dataOffsetMult;
             const samples = i < pktCnt - 1 ? WebUsbLimeSdr.SAMPLES_PER_PACKET : samplesCnt - i * WebUsbLimeSdr.SAMPLES_PER_PACKET;
             this._fillHeader(output, pktOffset, data.discard_timestamp, timestamp, samples);
-            WebUsb.fillData(DataType.ci16, output, pktOffset + WebUsbLimeSdr.HEADER_SIZE, data.datatype, data.data, dataOffset, samples << 1);
+            WebUsbWasm.fillData(DataType.ci16, output, pktOffset + WebUsbLimeSdr.HEADER_SIZE, data.datatype, data.data, dataOffset, samples << 1);
             timestamp += timestampInc;
         }
         // const view = new Int16Array(output/* , WebUsbLimeSdr.HEADER_SIZE */);
@@ -176,10 +183,8 @@ export class WebUsbLimeSdr extends WebUsb {
         return output;
     }
 
-    async open() {
-        await super.open();
-
-        if (this.module && this.device) {
+    async open(): Promise<boolean> {
+        if (await super.open() && this.device) {
             try {
                 // if (!this.device.opened) await this.device.close();
                 await this.device.open();
@@ -191,14 +196,19 @@ export class WebUsbLimeSdr extends WebUsb {
                 if (this.device.configuration === null) await this.device.selectConfiguration(1);
                 await this.device.claimInterface(0);
                 await this.device.claimInterface(1);
-                const res = await this.module.ccall("init_lib", "number", ["number", "number", "number"],
+                const res = await this.module?.ccall("init_lib", "number", ["number", "number", "number"],
                     [this.fd, this.device.vendorId, this.device.productId], { async: true }
                 );
                 if (res < 0) this.device.close();
+
+                return this.isOpened();
             } catch (err) {
                 console.error(err)
                 this.fd = -1;
             }
         }
+        return false;
     }
 }
+
+registerWebUsbInstance(WebUsbLimeSdr);

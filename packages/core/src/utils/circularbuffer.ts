@@ -11,25 +11,6 @@ export class CircularBuffer<T = any> {
     constructor(len: number) {
         this._bufferLen = len;
         this._buffer = new Array<T>(this._bufferLen);
-
-        return new Proxy(this, {
-            set: function (target: CircularBuffer<T>, name: PropertyKey, value: any) {
-                const index: number = (typeof name == 'string' ? parseInt(name) : NaN);
-                if (!isNaN(index)) {
-                    target.set(index, value);
-                } else {
-                    target[name as keyof CircularBuffer<T>] = value;
-                }
-                return true;
-            },
-            get: function (target: CircularBuffer<T>, name: PropertyKey) {
-                const index: number = (typeof name == 'string' ? parseInt(name) : NaN);
-                if (!isNaN(index)) {
-                    return target.get(index);
-                }
-                return target[name as keyof CircularBuffer<T>];
-            }
-        });
     }
 
     clear() {

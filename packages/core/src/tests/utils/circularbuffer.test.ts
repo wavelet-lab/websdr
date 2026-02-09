@@ -601,17 +601,6 @@ test('front and pop_front, Head > Tail && Full', async (context: Context) => {
     assert.equal(cb.size(), 0)
 })
 
-test('index access exceptions', async () => {
-    const cb = new CircularBuffer(3)
-
-    // Test error handling for invalid index access on empty buffer
-    // Expected: proper error messages for out-of-range access
-    expect(() => cb.set(0, 1)).toThrowError('circularbuffer.set: index 0 converted to table index 0 out of range')
-    expect(() => cb[0] = 1).toThrowError('circularbuffer.set: index 0 converted to table index 0 out of range')
-    expect(() => cb.get(0)).toThrowError('circularbuffer.get: index 0 converted to table index 0 out of range')
-    expect(() => cb[0]).toThrowError('circularbuffer.get: index 0 converted to table index 0 out of range')
-})
-
 test('index access get', async (context: Context) => {
     let cb
 
@@ -682,50 +671,12 @@ test('index access set', async (context: Context) => {
     assert.equal(cb.get(2), 33)
 })
 
-test('index access operator []', async (context: Context) => {
-    let cb
-
-    // Test bracket operator for different buffer states
-    // Expected: bracket notation works same as get() method
-    cb = context.cbTH;
-    assert.equal(cb[0], 1)
-    assert.equal(cb[1], 2)
-
-    cb = context.cbTHF;
-    assert.equal(cb[0], 1)
-    assert.equal(cb[1], 2)
-    assert.equal(cb[2], 3)
-
-    cb = context.cbHT;
-    assert.equal(cb[0], 1)
-    assert.equal(cb[1], 2)
-
-    cb = context.cbHTF;
-    assert.equal(cb[0], 1)
-    assert.equal(cb[1], 2)
-    assert.equal(cb[2], 3)
-})
-
 class ComplexObject {
     buf: Float32Array;
     constructor() {
         this.buf = new Float32Array(4)
     }
 }
-
-test('index access operator [] for complex objects', async () => {
-    const cb = new CircularBuffer(3)
-    const buf = cb.getRawBuffer()
-
-    // Test storing complex objects in buffer
-    // Expected: objects can be stored and retrieved correctly
-    for (let i = 0; i < buf.length; ++i) {
-        buf[i] = new ComplexObject()
-    }
-    cb.alloc_back()
-
-    assert.deepEqual(cb[0], new ComplexObject())
-})
 
 test('clear method', async () => {
     const cb = new CircularBuffer(3);
@@ -871,7 +822,7 @@ test('complex buffer state transitions', async () => {
     cb.push_back(5);
     cb.push_back(6);
     assert.equal(cb.isFull(), true);
-    assert.deepEqual([cb[0], cb[1], cb[2], cb[3]], [3, 4, 5, 6]);
+    assert.deepEqual([cb.get(0), cb.get(1), cb.get(2), cb.get(3)], [3, 4, 5, 6]);
 });
 
 test('large buffer operations', async () => {
@@ -939,13 +890,13 @@ test('buffer with capacity 1', async () => {
     cb.push_back(1);
     assert.equal(cb.size(), 1);
     assert.equal(cb.isFull(), true);
-    assert.equal(cb[0], 1);
+    assert.equal(cb.get(0), 1);
 
     // Test overflow behavior with capacity 1
     // Expected: new element replaces the only element
     cb.push_back(2);
     assert.equal(cb.size(), 1);
-    assert.equal(cb[0], 2);
+    assert.equal(cb.get(0), 2);
 });
 
 test('alloc operations edge cases', async () => {

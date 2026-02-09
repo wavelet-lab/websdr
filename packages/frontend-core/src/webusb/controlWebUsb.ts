@@ -5,6 +5,7 @@ import { NngWebSocket, Protocol } from '@/common/nngWebSocket';
 import {
     getWebUsbManagerInstance, WebUsbManager, WebUsbManagerMode
 } from './webUsbManager';
+import { WebUsbDirection } from './deviceParameters';
 import { WebUsbEndpoints } from './webUsbBase'
 import type { StreamStatus } from './webUsbBase'
 
@@ -28,12 +29,6 @@ export enum WebUsbChannels {
     CHAN1 = 1 << 0,
     CHAN2 = 1 << 1,
     ALL_CHANS = CHAN1 | CHAN2,
-}
-
-export enum WebUsbDirection {
-    RX = 1 << 0,
-    TX = 1 << 1,
-    RX_TX = RX | TX,
 }
 
 export class ControlWebUsb extends EventTarget {
