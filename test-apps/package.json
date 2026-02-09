@@ -10,7 +10,7 @@
         "@websdr/frontend-core": "file:../packages/frontend-core"
     },
     "devDependencies": {
-        "tsx": "^4.7.0",
+        "tsx": "^4.21.0",
         "typescript": "^5.9.2"
     }
 }
