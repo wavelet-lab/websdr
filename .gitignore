@@ -12,6 +12,9 @@ build/
 packages/frontend-core/control/
 *.tsbuildinfo
 
+# Auto-generated sources (created during packages/frontend-core prebuild)
+packages/frontend-core/src/webusb/webUsbDevices.autogen.ts
+
 # Environment variables
 .env
 .env.local

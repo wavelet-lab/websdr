@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { generateWebUsbRegistrations } from './generate-webusb-registrations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,6 +22,7 @@ function copyDir(src, dest, skipFiles = []) {
 
 (function main() {
     try {
+        generateWebUsbRegistrations();
         console.log('Copying control files...');
         copyDir(path.join(pkgRoot, 'src', 'control'), path.join(pkgRoot, 'dist', 'control'), ['pre.js']);
         process.exit(0);

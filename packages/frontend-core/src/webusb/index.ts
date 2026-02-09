@@ -1,3 +1,7 @@
+// Auto-register built-in WebUSB device implementations.
+// This file is generated at build time by scripts/prebuild.js.
+import './webUsbDevices.autogen';
+
 // Re-exporting all types from WebUsb module
 export {
     WebUsbChannels, ControlWebUsb, ControlWebUsbInitialParams
