@@ -1,0 +1,16 @@
+---
+config:
+  layout: elk
+---
+sequenceDiagram
+  participant UI as Web UI
+  participant API as Control Abstraction
+  participant AD as SDR Adapter (WASM or JS)
+  participant DEV as SDR Device (WebUSB)
+
+  UI->>API: Build high-level request (JSON)
+  API->>AD: Dispatch request
+  AD->>DEV: Send device-specific command(s)
+  DEV-->>AD: Reply / status
+  AD-->>API: Normalize response
+  API-->>UI: Update state / UI

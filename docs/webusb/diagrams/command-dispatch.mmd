@@ -1,0 +1,19 @@
+---
+config:
+  layout: elk
+---
+sequenceDiagram
+  participant UI as Web UI
+  participant CTRL as Control Abstraction
+  participant Q as Command Queue
+  participant DRV as Driver (WASM/JS)
+  participant DEV as WebUSB Device
+
+  UI->>CTRL: sendCommand({req_method, req_params})
+  CTRL->>Q: enqueue request
+  Q->>DRV: sendCommandToDevice(req)
+  DRV->>DEV: device-specific control op(s)
+  DEV-->>DRV: reply/status
+  DRV-->>Q: normalized reply
+  Q-->>CTRL: resolve/reject
+  CTRL-->>UI: update state / UI

@@ -1,14 +1,17 @@
-import { WebUsb, DeviceStreamType } from './webUsbBase';
+import { registerWebUsbInstance } from './webUsb';
+import { WebUsbDirection, DeviceStreamType } from './deviceParameters';
+import type { DeviceConfiguration } from './deviceParameters';
 import type {
-    WebUsbParams, RXDecoderOptions, RXBuffer, DeviceConfiguration, TXBuffer, TXEncoderOptions
+    WebUsbParams, RXDecoderOptions, RXBuffer, TXBuffer, TXEncoderOptions,
 } from './webUsbBase';
+import { WebUsbWasm } from './webUsbWasm';
 import {
     DataType, CHUNK_SIZE, COMPLEX_FLOAT_SIZE, COMPLEX_INT16_SIZE
 } from '@websdr/core/common';
 
 const debug_usb_log = false;
 
-export abstract class WebUsbWsdr extends WebUsb {
+export abstract class WebUsbWsdr extends WebUsbWasm {
     static MAX_PACKET_SIZE = 0x000fffff;
     static PACKET_ALIGN = 512
     static PACKET_ALIGN_MASK = WebUsbWsdr.PACKET_ALIGN - 1;
@@ -94,23 +97,10 @@ export abstract class WebUsbWsdr extends WebUsb {
         const datatype = opts?.datatype || DataType.ci16;
         const elementSize = (datatype === DataType.cf32 || datatype === DataType.f32) ? COMPLEX_FLOAT_SIZE : COMPLEX_INT16_SIZE;
         const output = opts?.data !== undefined ? opts.data : new SharedArrayBuffer(samplesRecv * elementSize);
-        WebUsb.fillData(datatype, output, 0, DataType.ci16, data.buffer, 0, (dataSize / Int16Array.BYTES_PER_ELEMENT) >> 0);
+        WebUsbWasm.fillData(datatype, output, 0, DataType.ci16, data.buffer, 0, (dataSize / Int16Array.BYTES_PER_ELEMENT) >> 0);
 
         this._timestamp += BigInt(overrun * samplesRecv);
 
-        /*let output = undefined;
-        const datatype = opts?.datatype || DataType.ci16;
-        if (datatype === DataType.cf32 || datatype === DataType.f32) {
-            output = opts?.data !== undefined ? opts.data : new SharedArrayBuffer(samplesRecv * COMPLEX_FLOAT_SIZE);
-            const viewData = new Float32Array(output);
-            const view16 = new Int16Array(data.buffer, 0, (dataSize / Int16Array.BYTES_PER_ELEMENT) >> 0);
-            bufferI16ToF32(view16, viewData);
-        } else {
-            output = opts?.data !== undefined ? opts.data : new SharedArrayBuffer(samplesRecv * COMPLEX_INT16_SIZE);
-            const viewData = new Int16Array(output);
-            const view16 = new Int16Array(data.buffer, 0, (dataSize / Int16Array.BYTES_PER_ELEMENT) >> 0);
-            viewData.set(view16);
-        }*/
         // console.log('RECEIVED TIMESTAMP', this._timestamp);
         if (globalThis.debug_mode || debug_usb_log) console.log('RECEIVE timestamp', this._timestamp, overrun, 'output', output.byteLength);
 
@@ -138,7 +128,7 @@ export abstract class WebUsbWsdr extends WebUsb {
         // console.log('VIEWIN', viewin.length, viewin);
         // console.log('SEND TIMESTAMP', data.timestamp);
         let output = undefined;
-        const samplesCnt = WebUsb.getSamplesCnt(data.datatype, data.byteLength || data.data.byteLength);
+        const samplesCnt = WebUsbWasm.getSamplesCnt(data.datatype, data.byteLength || data.data.byteLength);
         const sliceSamples = opts?.sliceSamples || samplesCnt;
         const chunkCnt = Math.ceil(samplesCnt / sliceSamples);
         const bufSize = samplesCnt * COMPLEX_INT16_SIZE + chunkCnt * WebUsbWsdr.HEADER_SIZE; /* this.getTXPacketSize(sampleCnt) */
@@ -150,13 +140,13 @@ export abstract class WebUsbWsdr extends WebUsb {
         const timestampInc = BigInt(sliceSamples);
         const chunkSize = this.getTXPacketSize(sliceSamples);
         const dataOffsetMain = data.byteOffset || 0;
-        const dataOffsetMult = sliceSamples * WebUsb.getSampleByteLength(data.datatype);
+        const dataOffsetMult = sliceSamples * WebUsbWasm.getSampleByteLength(data.datatype);
         for (let i = 0; i < chunkCnt; ++i) {
             const pktOffset = i * chunkSize
             const dataOffset = dataOffsetMain + i * dataOffsetMult;
             const samples = i < chunkCnt - 1 ? sliceSamples : samplesCnt - i * sliceSamples;
             this._fillHeader(output, pktOffset, data.discard_timestamp, timestamp, samples);
-            WebUsb.fillData(DataType.ci16, output, pktOffset + WebUsbWsdr.HEADER_SIZE, data.datatype, data.data, dataOffset, samples << 1);
+            WebUsbWasm.fillData(DataType.ci16, output, pktOffset + WebUsbWsdr.HEADER_SIZE, data.datatype, data.data, dataOffset, samples << 1);
             timestamp += timestampInc;
             // console.log('OUTPUT', output);
         }
@@ -166,10 +156,8 @@ export abstract class WebUsbWsdr extends WebUsb {
         return output;
     }
 
-    async open() {
-        await super.open();
-
-        if (this.module && this.device) {
+    async open(): Promise<boolean> {
+        if (await super.open() && this.device) {
             try {
                 // if (!this.device.opened) await this.device.close();
                 await this.device.open();
@@ -181,20 +169,25 @@ export abstract class WebUsbWsdr extends WebUsb {
                 if (this.device.configuration === null) await this.device.selectConfiguration(1);
                 const ifaceNum = this.device.configuration?.interfaces[0]?.interfaceNumber ?? 0;
                 await this.device.claimInterface(ifaceNum);
-                // const res = await this.module._init_lib(this.fd, this.device.vendorId, this.device.productId);
-                const res = await this.module.ccall("init_lib", "number", ["number", "number", "number"],
+                const res = await this.module?.ccall("init_lib", "number", ["number", "number", "number"],
                     [this.fd, this.device.vendorId, this.device.productId], { async: true }
                 );
                 if (res < 0) this.device.close();
+
+                return this.isOpened();
             } catch (err) {
                 console.error(err)
                 this.fd = -1;
             }
         }
+        return false;
     }
 }
 
 export class WebUsbXsdr extends WebUsbWsdr {
+    static VENDOR_ID = 0x3727;
+    static PRODUCT_ID = 0x1011;
+
     constructor(parms: WebUsbParams) {
         super(parms)
         if (globalThis.debug_mode || debug_usb_log)
@@ -203,6 +196,7 @@ export class WebUsbXsdr extends WebUsbWsdr {
 
     getConfiguration(): DeviceConfiguration {
         return {
+            operationModes: WebUsbDirection.RX_TX,
             defaultSamplesCount: CHUNK_SIZE,
             rxFrequencyRange: { min: 30e6, max: 3800e6 },
             txFrequencyRange: { min: 30e6, max: 3800e6 },
@@ -216,6 +210,9 @@ export class WebUsbXsdr extends WebUsbWsdr {
 }
 
 export class WebUsbUsdr extends WebUsbWsdr {
+    static VENDOR_ID = 0x3727;
+    static PRODUCT_ID = 0x1001;
+
     constructor(parms: WebUsbParams) {
         super(parms)
         if (globalThis.debug_mode || debug_usb_log)
@@ -224,6 +221,7 @@ export class WebUsbUsdr extends WebUsbWsdr {
 
     getConfiguration(): DeviceConfiguration {
         return {
+            operationModes: WebUsbDirection.RX_TX,
             defaultSamplesCount: CHUNK_SIZE,
             rxFrequencyRange: { min: 100e3, max: 3600e6 },
             txFrequencyRange: { min: 300e6, max: 3600e6 },
@@ -235,3 +233,6 @@ export class WebUsbUsdr extends WebUsbWsdr {
         };
     }
 }
+
+registerWebUsbInstance(WebUsbXsdr);
+registerWebUsbInstance(WebUsbUsdr);

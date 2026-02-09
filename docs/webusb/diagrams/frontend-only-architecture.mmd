@@ -1,0 +1,16 @@
+---
+config:
+  layout: elk
+---
+flowchart LR
+  UI["Web UI / Application"]
+  CTRL["Control Abstraction<br/>#40;command model + ordering#41;"]
+  DRV["SDR Driver<br/>#40;WASM or JS#41;"]
+  USB["WebUSB Device"]
+
+  UI -->|high-level requests<br/>#40;req_method / req_params#41;| CTRL
+  CTRL -->|dispatch| DRV
+  DRV -->|control transfers| USB
+  USB -->|status / replies| DRV
+  DRV -->|IQ stream<br/>#40;RX / TX#41;| USB
+  DRV -->|decoded IQ buffers| UI

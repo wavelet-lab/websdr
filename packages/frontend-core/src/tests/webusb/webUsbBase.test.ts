@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { WebUsb, DefaultDeviceConfiguration } from '@/webusb/webUsbBase';
+import { DefaultDeviceConfiguration } from '@/webusb/deviceParameters';
+import { WebUsb } from '@/webusb/webUsbBase';
 import { DataType } from '@websdr/core/common';
 
 class TestWebUsb extends WebUsb {
@@ -30,6 +31,9 @@ class TestWebUsb extends WebUsb {
     }
     async encodeTxData(data: any): Promise<ArrayBufferLike> {
         return data.data ?? new ArrayBuffer(0);
+    }
+    async sendCommandToDevice(req: Record<string, any>): Promise<Record<string, any>> {
+        return { result: 0 };
     }
 }
 
@@ -132,30 +136,21 @@ describe('WebUsb command queue', () => {
         const inst = new TestWebUsb({ fd: 1, vid: 0, pid: 0, module: module as any });
         inst.device = device;
 
+        const sendSpy = vi.spyOn(inst as any, 'sendCommandToDevice');
         const p = inst.sendCommand({ cmd: 'ping' });
         const res = await p;
-        expect(res).toEqual({ answer: 'ok' });
-        expect(module.ccall).toHaveBeenCalledWith(
-            'send_command',
-            'number',
-            ['number', 'number', 'number', 'number', 'number'],
-            expect.any(Array),
-            { async: true }
-        );
+        expect(res).toEqual({ result: 0 });
+        expect(sendSpy).toHaveBeenCalled();
     });
 });
 
 describe('WebUsb TX queue limits', () => {
-    beforeEach(() => {
-        (WebUsb as any).MAX_SEND_DATA_REQUEST = 2;
-    });
-
     it('sendTxRawPacket drops when queue full and allowDrop=true', async () => {
         const d1 = deferred<any>();
         const d2 = deferred<any>();
         const device = createMockUSBDevice([d1, d2]);
         const module = createMockModule();
-        const inst = new TestWebUsb({ fd: 1, vid: 0, pid: 0, module: module as any });
+        const inst = new TestWebUsb({ fd: 1, vid: 0, pid: 0, module: module as any, max_send_data_requests: 2 });
         inst.device = device;
 
         const pkt = new ArrayBuffer(64);
@@ -171,22 +166,5 @@ describe('WebUsb TX queue limits', () => {
 
         await expect(p1).resolves.toMatchObject({ usbOutTransferResult: { status: 'ok' } });
         await expect(p2).resolves.toMatchObject({ usbOutTransferResult: { status: 'ok' } });
-    });
-
-    it('waitForChangeSendDataReq resolves when a TX completes', async () => {
-        const d = deferred<any>();
-        const device = createMockUSBDevice([d]);
-        const module = createMockModule();
-        const inst = new TestWebUsb({ fd: 1, vid: 0, pid: 0, module: module as any });
-        inst.device = device;
-
-        const pkt = new ArrayBuffer(16);
-        const pending = inst.sendTxRawPacket(pkt); // increases queued count
-
-        const waiter = inst.waitForChangeSendDataReq();
-        d.resolve({ status: 'ok', bytesWritten: pkt.byteLength });
-
-        await waiter; // should resolve when internal counter decremented
-        await expect(pending).resolves.toMatchObject({ usbOutTransferResult: { status: 'ok' } });
     });
 });

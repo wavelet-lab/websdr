@@ -15,7 +15,7 @@
         "test:coverage": "vitest run --coverage"
     },
     "devDependencies": {
-        "@types/node": "^24.10.0"
+        "@types/node": "^25.2.2"
     },
     "exports": {
         ".": {
