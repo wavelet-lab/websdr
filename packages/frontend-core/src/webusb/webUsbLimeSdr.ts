@@ -183,8 +183,8 @@ export class WebUsbLimeSdr extends WebUsbWasm {
         return output;
     }
 
-    async open(): Promise<boolean> {
-        if (await super.open() && this.device) {
+    async open(device?: USBDevice): Promise<boolean> {
+        if (await super.open(device) && this.device) {
             try {
                 // if (!this.device.opened) await this.device.close();
                 await this.device.open();

@@ -6,7 +6,7 @@ export async function ensureWebUsb(): Promise<any> {
     // Try prefer "usb" package (recommended by maintainer warning), then fallback to "webusb"
     const tryLoad = async (name: string) => {
         try {
-            const mod = await import(name);
+            const mod = await import(/* @vite-ignore */name);
             if (!mod) {
                 throw null;
             }

@@ -28,7 +28,7 @@ export function getWebUsbManagerInstance(mode: WebUsbManagerMode): WebUsbManager
                 break;
         }
     }
-    if (webUsbManager[mode] === undefined) throw new Error("webUsbManager[mode] can't be undefined")
+    if (webUsbManager[mode] === undefined) throw new Error("webUsbManager[mode] can't be undefined");
     return webUsbManager[mode]!;
 }
 
@@ -36,6 +36,7 @@ export interface RequestDeviceInfo {
     devName: string,
     vendorId: number,
     productId: number,
+    device?: USBDevice,
 }
 
 export abstract class WebUsbManager {
@@ -56,7 +57,7 @@ export abstract class WebUsbManager {
                 const vendorId = device.vendorId;
                 const productId = device.productId;
 
-                return { devName, vendorId, productId }
+                return { devName, vendorId, productId, device }
             }
         } catch (err) {
             console.error('requestDevice: error:', err);
@@ -64,7 +65,7 @@ export abstract class WebUsbManager {
         return undefined;
     }
 
-    abstract open(vendorId?: number, productId?: number): Promise<number>;
+    abstract open(vendorId?: number, productId?: number, device?: USBDevice): Promise<number>;
     abstract close(fd: number): Promise<void>;
     abstract closeAll(): Promise<void>;
     abstract getName(fd: number): Promise<string>;
@@ -85,10 +86,10 @@ class WebUsbSingleManager extends WebUsbManager {
         super()
     }
 
-    async open(vendorId?: number, productId?: number): Promise<number> {
+    async open(vendorId?: number, productId?: number, device?: USBDevice): Promise<number> {
         // console.warn('WebUsbSingleManager.open', vendorId, productId);
         if (vendorId === undefined || productId === undefined) return -1;
-        const dev = await globalThis.webUsbDeviceManager?.open(vendorId, productId);
+        const dev = await globalThis.webUsbDeviceManager?.open(vendorId, productId, device);
         if (!dev) return -1;
         return dev.fd;
     }
@@ -190,7 +191,7 @@ class WebUsbWorkerManager extends WebUsbManager {
         this.startWorker();
     }
 
-    async open(vendorId?: number, productId?: number): Promise<number> {
+    async open(vendorId?: number, productId?: number, device?: USBDevice): Promise<number> {
         // console.warn('WebUsbWorkerManager.open', vendorId, productId);
         if (vendorId === undefined || productId === undefined) return -1;
         if (!this.worker) {
@@ -396,7 +397,7 @@ export class WebUsbDummyManager extends WebUsbManager {
         super()
     }
 
-    async open(vendorId?: number, productId?: number): Promise<number> {
+    async open(vendorId?: number, productId?: number, device?: USBDevice): Promise<number> {
         this._stream_status = 'PREPARED';
         return 0;
     }

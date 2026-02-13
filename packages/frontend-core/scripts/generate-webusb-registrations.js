@@ -94,8 +94,9 @@ export function generateWebUsbRegistrations() {
 }
 
 // Allow running directly: `node scripts/generate-webusb-registrations.js`
-if (import.meta.url === `file://${__filename}`) {
+if (process.argv[1] === __filename) {
     try {
+        console.log('Generating WebUSB registrations...');
         generateWebUsbRegistrations();
         process.exit(0);
     } catch (e) {

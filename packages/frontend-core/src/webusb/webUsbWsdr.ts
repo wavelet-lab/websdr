@@ -77,7 +77,7 @@ export abstract class WebUsbWsdr extends WebUsbWasm {
         if (globalThis.debug_mode || debug_usb_log)
             console.log('RECEIVED DATA', data)
         const id = opts !== undefined && opts.id !== undefined ? opts.id : -1;
-        const extraMeta = opts?.extra_meta === true;
+        const extraMeta = true; // now it's always extra meta (old condition: opts?.extra_meta === true;)
         const trailerSize = WebUsbWsdr.TRAILER_SIZE + (extraMeta ? WebUsbWsdr.TRAILER_EXTRA_SIZE : 0);
         const dataSize = data.byteLength - trailerSize;
         const samplesRecv = (dataSize / COMPLEX_INT16_SIZE) >> 0;
@@ -156,8 +156,8 @@ export abstract class WebUsbWsdr extends WebUsbWasm {
         return output;
     }
 
-    async open(): Promise<boolean> {
-        if (await super.open() && this.device) {
+    async open(device?: USBDevice): Promise<boolean> {
+        if (await super.open(device) && this.device) {
             try {
                 // if (!this.device.opened) await this.device.close();
                 await this.device.open();

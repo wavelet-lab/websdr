@@ -1,5 +1,7 @@
 import { CircularBuffer } from '@websdr/core/utils';
 
+const debug_command_queue = false;
+
 /**
  * Command queue item
  */
@@ -51,12 +53,15 @@ export class CommandQueue {
                     if ((rep as any)['error'] !== undefined) {
                         const err = (rep as any)['error'];
                         const errmsg = `CommandQueue: Reply to command '${JSON.stringify(com.req)}' contains error: ${err}`;
+                        if (debug_command_queue) console.error(errmsg);
                         com.reject?.(errmsg);
                     } else {
+                        if (debug_command_queue) console.log('CommandQueue: Command', JSON.stringify(com.req), '=>', JSON.stringify(rep));
                         com.resolve?.(rep);
                     }
                 } catch (err) {
                     const errmsg = `CommandQueue: Reply to command '${JSON.stringify(com.req)}' exception: ${err}`;
+                    if (debug_command_queue) console.error(errmsg);
                     com.reject?.(errmsg);
                 }
             }

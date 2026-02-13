@@ -7,3 +7,4 @@ export { default as List } from './List.vue';
 export type { ListProps } from './List.vue';
 export { default as SdrInput } from './SdrInput.vue';
 export type { SdrInputProps, RequestDeviceInfo } from './SdrInput.vue';
+export type { SizeType, VariantType, StatusType, PlacementType } from './components.d';
