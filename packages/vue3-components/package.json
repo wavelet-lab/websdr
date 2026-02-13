@@ -4,6 +4,12 @@
     "description": "This is a Vue 3 components package for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
+    "homepage": "https://docs.wsdr.io/webdev/websdr/vue3-components.html",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wavelet-lab/websdr",
+        "directory": "packages/vue3-components"
+    },
     "keywords": [
         "vue",
         "vue3",
@@ -26,7 +32,9 @@
         "build:types": "vue-tsc --emitDeclarationOnly",
         "test": "vitest run",
         "test:watch": "vitest",
-        "test:coverage": "vitest run --coverage"
+        "test:coverage": "vitest run --coverage",
+        "prepack": "cp ../../LICENSE ./LICENSE || true",
+        "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
         "@websdr/core": "^0.5.0",
@@ -64,5 +72,10 @@
             "require": "./dist/utils/index.cjs.js"
         },
         "./styles/*": "./dist/styles/*"
-    }
+    },
+    "files": [
+        "dist",
+        "LICENSE",
+        "README.md"
+    ]
 }

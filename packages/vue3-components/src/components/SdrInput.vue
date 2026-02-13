@@ -10,7 +10,7 @@ export default defineComponent({
 });
 
 export interface SdrInputProps {
-    device: RequestDeviceInfo; // Currently selected SDR device
+    device?: RequestDeviceInfo; // Currently selected SDR device
     mode?: 'single' | 'worker'; // Mode of WebUsb manager operation
     placeholder?: string; // Placeholder text for the input
     size?: SizeType; // Size of the input
@@ -26,7 +26,7 @@ import { getWebUsbManagerInstance, WebUsbManagerMode } from '@websdr/frontend-co
 import type { StatusType } from './components.d';
 
 interface Emits {
-    (e: 'update::device', requestDevice: RequestDeviceInfo): void;
+    (e: 'update:device', requestDevice: RequestDeviceInfo): void;
 }
 
 const props = withDefaults(defineProps<SdrInputProps>(), {
@@ -51,12 +51,12 @@ async function selectUsb(requestDevice: RequestDeviceInfo | undefined) {
     if (requestDevice !== undefined) {
         Object.assign(value, requestDevice);
         // console.log('setstorage', device)
-        emit('update::device', value);
+        emit('update:device', value);
     } else {
         value.devName = '';
         value.vendorId = 0;
         value.productId = 0;
-        emit('update::device', value);
+        emit('update:device', value);
     }
 }
 
