@@ -357,9 +357,8 @@ Param bitfield (`req_params.param`):
 
 - Bits 0..2 (`0x1..0x7`): synchronization selector. Mapped values are: `1` => "1pps", `2` => "rx", `3` => "tx", `5` => "any", `7` => "none" (others => "off").
 - Bit 3 (`0x8`): start/stop control. If set, stream is not started; if clear, stream is started.
-- Bit 4 (`0x10`): enable RX extended statistics.
 
-Examples: `param=15` => start stream; `param=31` - start stream with extended RX stats.
+Examples: `param=15` => start stream without synchronization.
 
 Expected response:
 
@@ -367,8 +366,8 @@ Expected response:
 {
 	"result": 0,
 	"details": {
-		"wire-block-size": 0,
-		"wire-bursts": 0
+		"wire-block-size": 32768,
+		"wire-bursts": 1
 	}
 }
 ```

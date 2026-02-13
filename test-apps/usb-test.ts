@@ -7,6 +7,8 @@ import {
     WebUsbDirection
 } from '@websdr/frontend-core/webusb';
 
+const debug_webusb = false;
+
 const mode = WebUsbManagerMode.SINGLE;
 const packetSize = 8192;
 
@@ -34,7 +36,7 @@ const txConfig: StreamConfig = {
 
 async function testUsbRX(control: ControlWebUsb, webUsbManager: WebUsbManager, fd: number): Promise<bigint> {
     console.log('▶️  Starting RX stream...');
-    await control.sendCommand('START_STREAMING', { samplerate: rxConfig.samplerate, throttleon: 0, param: 15, mode: WebUsbDirection.RX });
+    await control.sendCommand('START_STREAMING', { samplerate: rxConfig.samplerate, throttleon: 0, param: 7, mode: WebUsbDirection.RX });
     await control.setParameter('SET_RX_FREQUENCY', { frequency: rxConfig.frequency }, true);
     await control.setParameter('SET_RX_BANDWIDTH', { frequency: rxConfig.bandwidth }, true);
     await control.setParameter('SET_RX_GAIN', { gain: rxConfig.gain }, true);
@@ -42,7 +44,7 @@ async function testUsbRX(control: ControlWebUsb, webUsbManager: WebUsbManager, f
     console.log('✅ RX stream started');
     // Read RX Data
     console.log('📥 Reading RX data...');
-    const TOTAL_PACKETS = 10000;
+    const TOTAL_PACKETS = 1000;
     const WINDOW = 128;
 
     let pktPooled = 0, pktRecv = 0, pktErrors = 0;
@@ -59,6 +61,7 @@ async function testUsbRX(control: ControlWebUsb, webUsbManager: WebUsbManager, f
         webUsbManager.submitRxPacket(fd, packetSize)
             .then((data) => {
                 ++pktRecv;
+                if (debug_webusb) console.log(`RX packet ${pktRecv}/${TOTAL_PACKETS} received, timestamp: ${data.timestamp}, overrun: ${data.overrun}, realigned: ${data.realigned}, dropped: ${data.dropped}`);
                 timestamp = data.timestamp;
                 overrun += data.overrun;
                 realigned += data.realigned;
@@ -94,7 +97,7 @@ async function testUsbRX(control: ControlWebUsb, webUsbManager: WebUsbManager, f
 
 async function testUsbTX(control: ControlWebUsb, webUsbManager: WebUsbManager, fd: number, firstTimestamp: bigint) {
     console.log('▶️  Starting TX stream...');
-    await control.sendCommand('START_STREAMING', { samplerate: txConfig.samplerate, param: 15, mode: WebUsbDirection.TX });
+    await control.sendCommand('START_STREAMING', { samplerate: txConfig.samplerate, param: 7, mode: WebUsbDirection.TX });
     await control.setParameter('SET_TX_FREQUENCY', { frequency: txConfig.frequency }, true);
     await control.setParameter('SET_TX_BANDWIDTH', { frequency: txConfig.bandwidth }, true);
     await control.setParameter('SET_TX_GAIN', { gain: txConfig.gain }, true);
@@ -102,14 +105,14 @@ async function testUsbTX(control: ControlWebUsb, webUsbManager: WebUsbManager, f
     console.log('✅ TX stream started');
     // Send TX Data
     console.log('📥 Send TX data...');
-    const TOTAL_PACKETS = 10000;
+    const TOTAL_PACKETS = 1000;
 
     let pktPooled = 0, pktSent = 0, pktErrors = 0;
 
     const data = new Int16Array(2 * packetSize);
     data.fill(0);
 
-    let ts = firstTimestamp;
+    let ts = 0n;//firstTimestamp;
 
     while (pktPooled < TOTAL_PACKETS) {
         await webUsbManager.sendTxPacket(fd, {
@@ -124,6 +127,7 @@ async function testUsbTX(control: ControlWebUsb, webUsbManager: WebUsbManager, f
             .catch(() => { ++pktErrors; });
         ts += BigInt(data.length / 2); // increment timestamp by number of samples
         ++pktPooled;
+        if (debug_webusb) console.log(`TX packet ${pktPooled}/${TOTAL_PACKETS} sent, timestamp: ${ts}`);
     }
 
     console.log('✅ TX data sent:', { pktPooled, pktSent, pktErrors });
@@ -165,7 +169,7 @@ async function testUsb() {
         console.log('✅ USB device:', requestDevice);
         // Test 4: Open Device
         console.log('🔌 Opening USB device...');
-        fd = await webUsbManager.open(requestDevice.vendorId, requestDevice.productId);
+        fd = await webUsbManager.open(requestDevice.vendorId, requestDevice.productId, requestDevice.device);
         if (fd === -1) {
             throw new Error('Failed to open USB device');
         }

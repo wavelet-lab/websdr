@@ -1,15 +1,21 @@
 {
     "name": "websdr",
-    "version": "1.0.0",
+    "version": "0.5.0",
     "description": "WebSDR package",
-    "author": "Timur <dtv.comp@gmail.com>",
+    "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
     "keywords": [
+        "radio",
         "websdr",
+        "webusb",
         "sdr",
         "wsdr",
-        "wavelet"
+        "wavelet",
+        "usdr",
+        "xsdr",
+        "ssdr"
     ],
+    "publishConfig": { "access": "public" },
     "type": "module",
     "workspaces": [
         "./packages/core",

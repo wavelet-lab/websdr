@@ -22,6 +22,7 @@ function copyDir(src, dest, skipFiles = []) {
 
 (function main() {
     try {
+        console.log('Generating WebUSB registrations...');
         generateWebUsbRegistrations();
         console.log('Copying control files...');
         copyDir(path.join(pkgRoot, 'src', 'control'), path.join(pkgRoot, 'dist', 'control'), ['pre.js']);

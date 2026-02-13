@@ -1,17 +1,13 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
+import type { SizeType, VariantType, StatusType, PlacementType } from './components.d';
 import type { DropdownOptionProps } from './DropdownOption.vue';
 
-export type { DropdownOptionProps };
+export type { SizeType, VariantType, StatusType, PlacementType, DropdownOptionProps };
 
 export default defineComponent({
     name: 'Dropdown',
 });
-
-export type SizeType = 'small' | 'medium' | 'large';
-export type VariantType = 'default' | 'outlined' | 'filled';
-export type StatusType = 'default' | 'undefined' | 'success' | 'warning' | 'error';
-export type PlacementType = 'bottom' | 'top' | 'auto';
 
 export interface DropdownProps<T = any> {
     modelValue?: T | Array<T>;      // current selected value(s) 

@@ -18,7 +18,8 @@ export abstract class WebUsbWasm extends WebUsb {
      */
     async sendCommandToDevice(req: Record<string, any>): Promise<Record<string, any>> {
         let ret: Record<string, any> = {};
-        if (!this.module || !this.device) return { error: -1 };
+        if (!this.module) return { error: "Control module is not initialized" };
+        if (!this.device) return { error: "Device is not initialized" };
         const in_cmd = this.module._malloc(512);
         const out_res = this.module._malloc(512);
         const req_str = JSON.stringify(req);
@@ -52,7 +53,8 @@ export abstract class WebUsbWasm extends WebUsb {
      * Implement the abstract debug method by delegating to the WASM helper.
      */
     async sendDebugCommandToDevice(req: string): Promise<string> {
-        if (!this.module || !this.device) return 'Error: module or device is undefined';
+        if (!this.module) return 'Error: module is not initialized';
+        if (!this.device) return 'Error: device is not initialized';
         const in_cmd = this.module._malloc(4096);
         const out_res = this.module._malloc(4096);
         this.module.stringToAscii(req, in_cmd);
@@ -69,11 +71,11 @@ export abstract class WebUsbWasm extends WebUsb {
         return ret;
     }
 
-    async open(): Promise<boolean> {
+    async open(device?: USBDevice): Promise<boolean> {
         if (!this.module) {
             console.error('Control module is not initialized');
             return false;
         }
-        return super.open();
+        return super.open(device);
     }
 }

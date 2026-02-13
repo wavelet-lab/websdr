@@ -1,10 +1,20 @@
 {
     "name": "@websdr/nestjs-microservice",
-    "version": "1.0.0",
+    "version": "0.5.0",
     "description": "This is a NestJS microservice for WebSDR",
-    "author": "Timur <dtv.comp@gmail.com>",
+    "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
-    "keywords": [],
+    "keywords": [
+        "nestjs",
+        "microservice",
+        "websdr",
+        "auth",
+        "users",
+        "jwt"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "type": "module",
@@ -22,8 +32,8 @@
         "@nestjs/passport": "^11.0.5",
         "@nestjs/testing": "^11.1.13",
         "@nestjs/websockets": "^11.1.13",
-        "@types/node": "^25.2.2",
-        "@websdr/core": "^1.0.0",
+        "@types/node": "^25.2.3",
+        "@websdr/core": "^0.5.0",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.14.3",
         "passport-jwt": "^4.0.1",
@@ -38,6 +48,11 @@
             "types": "./dist/index.d.ts",
             "import": "./dist/index.js",
             "require": "./dist/index.js"
+        },
+        "./common": {
+            "types": "./dist/common/index.d.ts",
+            "import": "./dist/common/index.js",
+            "require": "./dist/common/index.js"
         },
         "./auth": {
             "types": "./dist/auth/index.d.ts",

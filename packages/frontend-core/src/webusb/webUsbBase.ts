@@ -247,20 +247,23 @@ export abstract class WebUsb extends EventTarget {
      * should call `open()` and then perform device-specific claiming and
      * configuration (control transfers etc.).
      */
-    async open(): Promise<boolean> {
+    async open(device?: USBDevice): Promise<boolean> {
         if (debug_webusb) console.log('WebUsbBase.open()')
         navigator.usb.removeEventListener("connect", this._onConnect);
         navigator.usb.removeEventListener("disconnect", this._onDisconnect);
         navigator.usb.addEventListener("connect", this._onConnect);
         navigator.usb.addEventListener("disconnect", this._onDisconnect);
-        this.device = undefined;
-        const devices = await navigator.usb.getDevices();
-        for (let device of devices) {
-            if (debug_webusb) console.log('DEVICE', device, this.vid, this.pid)
-            if (device.vendorId === this.vid && device.productId === this.pid) {
-                this.device = device;
-                if (debug_webusb) console.log('FOUND DEVICE', device)
-                break;
+        this.device = device;
+        if (!this.device) {
+            const devices = await navigator.usb.getDevices();
+            if (debug_webusb) console.log('DEVICES', devices)
+            for (let device of devices) {
+                if (debug_webusb) console.log('DEVICE', device, this.vid, this.pid)
+                if (device.vendorId === this.vid && device.productId === this.pid) {
+                    this.device = device;
+                    if (debug_webusb) console.log('FOUND DEVICE', device)
+                    break;
+                }
             }
         }
         if (globalThis.debug_mode || debug_webusb) console.log('WebUsbBase.device', this.device)
