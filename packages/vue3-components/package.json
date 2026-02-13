@@ -1,10 +1,21 @@
 {
     "name": "@websdr/vue3-components",
-    "version": "1.0.0",
+    "version": "0.5.0",
     "description": "This is a Vue 3 components package for WebSDR",
-    "author": "Timur <dtv.comp@gmail.com>",
+    "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
-    "keywords": [],
+    "keywords": [
+        "vue",
+        "vue3",
+        "components",
+        "SdrInput",
+        "List",
+        "Dropdown",
+        "LogArea"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
     "main": "dist/index.cjs.js",
     "module": "dist/index.es.js",
     "types": "dist/index.d.ts",
@@ -18,8 +29,8 @@
         "test:coverage": "vitest run --coverage"
     },
     "dependencies": {
-        "@websdr/core": "^1.0.0",
-        "@websdr/frontend-core": "^1.0.0",
+        "@websdr/core": "^0.5.0",
+        "@websdr/frontend-core": "^0.5.0",
         "vue": "^3.5.28"
     },
     "devDependencies": {
@@ -27,7 +38,7 @@
         "@vue/cli-plugin-typescript": "^5.0.9",
         "@vue/cli-service": "^5.0.9",
         "@vue/test-utils": "^2.4.6",
-        "happy-dom": "^20.5.3",
+        "happy-dom": "^20.6.1",
         "sass": "^1.97.3",
         "vue-tsc": "^3.2.4"
     },
@@ -41,6 +52,16 @@
             "types": "./dist/index.d.ts",
             "import": "./dist/index.es.js",
             "require": "./dist/index.cjs.js"
+        },
+        "./components": {
+            "types": "./dist/components/index.d.ts",
+            "import": "./dist/components/index.es.js",
+            "require": "./dist/components/index.cjs.js"
+        },
+        "./utils": {
+            "types": "./dist/utils/index.d.ts",
+            "import": "./dist/utils/index.es.js",
+            "require": "./dist/utils/index.cjs.js"
         },
         "./styles/*": "./dist/styles/*"
     }

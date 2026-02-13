@@ -3,6 +3,7 @@
         // File Layout
         "rootDir": "src",
         "outDir": "dist",
+        // Path Mapping
         "baseUrl": ".",
         "paths": {
             "@/*": [

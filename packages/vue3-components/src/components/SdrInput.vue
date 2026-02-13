@@ -1,8 +1,9 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import type { RequestDeviceInfo } from '@websdr/frontend-core/webusb';
+import type { SizeType } from './components.d';
 
-export type { RequestDeviceInfo };
+export type { RequestDeviceInfo, SizeType };
 
 export default defineComponent({
     name: 'SdrInput',
@@ -12,7 +13,7 @@ export interface SdrInputProps {
     device: RequestDeviceInfo; // Currently selected SDR device
     mode?: 'single' | 'worker'; // Mode of WebUsb manager operation
     placeholder?: string; // Placeholder text for the input
-    size?: DropdownProps['size']; // Size of the input
+    size?: SizeType; // Size of the input
     disabled?: boolean; // Whether the input is disabled
 }
 
@@ -20,8 +21,9 @@ export interface SdrInputProps {
 
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue';
-import Dropdown, { type DropdownProps } from './Dropdown.vue';
+import Dropdown from './Dropdown.vue';
 import { getWebUsbManagerInstance, WebUsbManagerMode } from '@websdr/frontend-core/webusb';
+import type { StatusType } from './components.d';
 
 interface Emits {
     (e: 'update::device', requestDevice: RequestDeviceInfo): void;
@@ -72,7 +74,7 @@ const displayText = computed(() => {
     return value.devName || props.placeholder || '';
 });
 
-const dropdownStatus = computed((): DropdownProps['status'] => {
+const dropdownStatus = computed((): StatusType => {
     if (!value.devName) return 'error';
     else return 'success';
 });

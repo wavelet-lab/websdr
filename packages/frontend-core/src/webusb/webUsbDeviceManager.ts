@@ -29,7 +29,7 @@ export class WebUsbDeviceManager {
         this.module = params.module;
     }
 
-    async open(vid: number, pid: number): Promise<WebUsb | undefined> {
+    async open(vid: number, pid: number, device?: USBDevice): Promise<WebUsb | undefined> {
         if (!this.module) {
             console.error('Error: control module is not defined')
             return undefined;
@@ -59,7 +59,7 @@ export class WebUsbDeviceManager {
             console.error(`Error: unsupported WebUSB device vid=0x${vid.toString(16)}, pid=0x${pid.toString(16)}`);
             return undefined;
         }
-        await this.webUsbDevices[fd]?.open();
+        await this.webUsbDevices[fd]?.open(device);
         return this.webUsbDevices[fd];
     }
 
