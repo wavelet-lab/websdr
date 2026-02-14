@@ -4,6 +4,12 @@
     "description": "This is the core frontend package for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
+    "homepage": "https://docs.wsdr.io/webdev/websdr/frontend-core.html",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wavelet-lab/websdr",
+        "directory": "packages/frontend-core"
+    },
     "keywords": [
         "radio",
         "websdr",
@@ -26,7 +32,9 @@
         "prebuild": "node ./scripts/prebuild.js",
         "test": "vitest run",
         "test:watch": "vitest",
-        "test:coverage": "vitest run --coverage"
+        "test:coverage": "vitest run --coverage",
+        "prepack": "cp ../../LICENSE ./LICENSE || true",
+        "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
         "@websdr/core": "^0.5.0",
@@ -58,5 +66,10 @@
             "import": "./dist/webusb/index.js",
             "require": "./dist/webusb/index.js"
         }
-    }
+    },
+    "files": [
+        "dist",
+        "LICENSE",
+        "README.md"
+    ]
 }

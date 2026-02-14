@@ -4,6 +4,12 @@
     "description": "This is the core package for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
+    "homepage": "https://docs.wsdr.io/webdev/websdr/core.html",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wavelet-lab/websdr",
+        "directory": "packages/core"
+    },
     "keywords": [
         "circular buffer",
         "conversion",
@@ -21,7 +27,9 @@
         "build": "tsc && tsc-alias && tsc-esm-fix",
         "test": "vitest run",
         "test:watch": "vitest",
-        "test:coverage": "vitest run --coverage"
+        "test:coverage": "vitest run --coverage",
+        "prepack": "cp ../../LICENSE ./LICENSE || true",
+        "postpack": "rm -f ./LICENSE"
     },
     "devDependencies": {
         "@types/node": "^25.2.3"
@@ -47,5 +55,10 @@
             "import": "./dist/utils/index.js",
             "require": "./dist/utils/index.js"
         }
-    }
+    },
+    "files": [
+        "dist",
+        "LICENSE",
+        "README.md"
+    ]
 }

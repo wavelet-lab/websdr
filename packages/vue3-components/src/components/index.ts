@@ -3,6 +3,7 @@ export { default as LogArea } from "./LogArea.vue";
 export type { LogItemKey, LogAreaProps } from './LogArea.vue';
 export { default as Dropdown } from './Dropdown.vue';
 export type { DropdownProps, DropdownOptionProps } from './Dropdown.vue';
+export { default as DropdownOption } from './DropdownOption.vue';
 export { default as List } from './List.vue';
 export type { ListProps } from './List.vue';
 export { default as SdrInput } from './SdrInput.vue';

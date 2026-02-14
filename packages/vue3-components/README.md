@@ -1,12 +1,52 @@
-# Vue 3 Components
+# @websdr/vue3-components
 
-A collection of Vue 3 components with customizable styling using CSS variables.
+Vue 3 UI components for the WebSDR ecosystem (Dropdown, virtualized List, LogArea, SdrInput) with customizable styling via CSS variables.
 
-## Installation
+## Install
 
 ```bash
 npm install @websdr/vue3-components
 ```
+
+```bash
+pnpm add @websdr/vue3-components
+```
+
+```bash
+yarn add @websdr/vue3-components
+```
+
+## Importing
+
+Import from the root:
+
+```ts
+import { Dropdown, DropdownOption, List, LogArea, SdrInput } from '@websdr/vue3-components';
+```
+
+Or from subpaths:
+
+```ts
+import { Dropdown, List } from '@websdr/vue3-components/components';
+import { calculateDisplayItems } from '@websdr/vue3-components/utils';
+```
+
+## Styles
+
+Import the compiled CSS (recommended):
+
+```ts
+import '@websdr/vue3-components/styles/index.css';
+```
+
+You can also import per-component CSS:
+
+```ts
+import '@websdr/vue3-components/styles/dropdown.css';
+import '@websdr/vue3-components/styles/list.css';
+```
+
+Styling is based on CSS custom properties (variables). Override them in your app’s CSS to match your design system.
 
 ## Components
 
@@ -244,11 +284,11 @@ const isProcessing = ref(false)
 - `disabled?: boolean` — When true the input is disabled. Defaults to `false`.
 
 **Emits:**
-- `update::device` (RequestDeviceInfo | undefined) — Emitted when the selected device changes. Use `v-model:device` to bind.
+- `update:device` (RequestDeviceInfo) — Standard Vue event for `v-model:device`.
 
 **Behavior / Notes:**
 - When opened the component calls the WebUSB manager (`getWebUsbManagerInstance`) to request a device.
-- If a device is returned it becomes the selected device and `update::device` is emitted with the `RequestDeviceInfo`.
+- If a device is returned it becomes the selected device and `update:device` is emitted with the `RequestDeviceInfo`.
 - If the picker is cancelled the component emits an empty device object (fields set to empty/0) to indicate no selection.
 - The visual status (error/success) is derived from whether a device name is present.
 
@@ -264,11 +304,13 @@ All components are designed for maximum customization using CSS custom propertie
 
 ### Quick Start
 
-Import the base variables to get started:
+Import the compiled CSS entry (recommended for npm consumers):
 
-```scss
-@import '@websdr/vue3-components/src/styles/variables.scss';
+```ts
+import '@websdr/vue3-components/styles/index.css';
 ```
+
+If you need to customize via CSS variables, define overrides in your application stylesheet (no Sass required). The sections below list the available variables.
 
 ### Component Customization
 
@@ -594,6 +636,14 @@ This approach ensures that your components integrate seamlessly with any design 
 
 ## Development
 
+From the repository root:
+
+```bash
+npm install
+```
+
+From this package folder:
+
 ### Build
 ```bash
 npm run build
@@ -601,9 +651,20 @@ npm run build
 
 ### Test
 ```bash
-npm run test
+npm test
 ```
+
+## Source links
+
+This package publishes `dist/` to npm. Source is available in the GitHub repository:
+- Entry point: https://github.com/wavelet-lab/websdr/blob/main/packages/vue3-components/src/index.ts
+- Components exports: https://github.com/wavelet-lab/websdr/blob/main/packages/vue3-components/src/components/index.ts
+- Styles entry (SCSS): https://github.com/wavelet-lab/websdr/blob/main/packages/vue3-components/src/styles/index.scss
+- Utils exports: https://github.com/wavelet-lab/websdr/blob/main/packages/vue3-components/src/utils/index.ts
+
+Package folder (GitHub):
+https://github.com/wavelet-lab/websdr/tree/main/packages/vue3-components
 
 ## License
 
-MIT
+WebSDR is [MIT licensed](https://github.com/wavelet-lab/websdr/blob/main/LICENSE)

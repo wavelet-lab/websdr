@@ -4,6 +4,12 @@
     "description": "WebSDR test applications",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
+    "homepage": "https://github.com/wavelet-lab/websdr/tree/main/test-apps",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wavelet-lab/websdr",
+        "directory": "test-apps"
+    },
     "keywords": [
         "radio",
         "websdr",
