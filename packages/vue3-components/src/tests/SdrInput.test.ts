@@ -69,7 +69,7 @@ describe('SdrInput.vue', () => {
         expect((getWebUsbManagerInstance as any).mock.calls.length).toBeGreaterThan(0)
         expect((getWebUsbManagerInstance as any).mock.calls[0][0]).toBe(WebUsbManagerMode.SINGLE)
 
-        const emitted = wrapper.emitted()['update::device']
+        const emitted = wrapper.emitted()['update:device']
         expect(emitted).toBeTruthy()
         expect((emitted![0] as any)[0]).toBeDefined()
         expect((emitted![0] as any)[0].devName).toBe('USB-Device')

@@ -4,6 +4,12 @@
     "description": "This is a NestJS microservice for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
+    "homepage": "https://docs.wsdr.io/webdev/websdr/nestjs-microservice.html",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wavelet-lab/websdr",
+        "directory": "packages/nestjs-microservice"
+    },
     "keywords": [
         "nestjs",
         "microservice",
@@ -22,7 +28,9 @@
         "build": "tsc && tsc-alias && tsc-esm-fix",
         "test": "vitest run",
         "test:watch": "vitest",
-        "test:coverage": "vitest run --coverage"
+        "test:coverage": "vitest run --coverage",
+        "prepack": "cp ../../LICENSE ./LICENSE || true",
+        "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
         "@nestjs/common": "^11.1.13",
@@ -64,5 +72,11 @@
             "import": "./dist/users/index.js",
             "require": "./dist/users/index.js"
         }
-    }
+    },
+    "files": [
+        "dist",
+        "!dist/tests",
+        "LICENSE",
+        "README.md"
+    ]
 }

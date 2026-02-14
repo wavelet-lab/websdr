@@ -4,6 +4,11 @@
     "description": "WebSDR package",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
+    "homepage": "https://docs.wsdr.io/webdev/websdr/websdr.html",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wavelet-lab/websdr"
+    },
     "keywords": [
         "radio",
         "websdr",
@@ -15,7 +20,7 @@
         "xsdr",
         "ssdr"
     ],
-    "publishConfig": { "access": "public" },
+    "private": true,
     "type": "module",
     "workspaces": [
         "./packages/core",
