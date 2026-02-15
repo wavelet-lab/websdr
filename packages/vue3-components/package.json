@@ -1,6 +1,6 @@
 {
     "name": "@websdr/vue3-components",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "description": "This is a Vue 3 components package for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",

@@ -1,6 +1,6 @@
 {
     "name": "@websdr/nestjs-microservice",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "description": "This is a NestJS microservice for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",

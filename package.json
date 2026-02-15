@@ -1,6 +1,5 @@
 {
     "name": "websdr",
-    "version": "0.5.0",
     "description": "WebSDR package",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
