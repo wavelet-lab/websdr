@@ -1,7 +1,6 @@
 import { Module, Global } from '@nestjs/common';
 import type { DynamicModule, LoggerService } from '@nestjs/common';
-
-export const LOGGER = Symbol('LOGGER');
+import { LOGGER } from './tokens';
 
 export function createContextLogger(base: any, context: string): LoggerService {
     const call = (method: string, ...args: any[]) => {
