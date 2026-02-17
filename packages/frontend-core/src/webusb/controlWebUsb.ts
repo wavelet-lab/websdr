@@ -1,5 +1,6 @@
 import { DataType, CHUNK_SIZE } from '@websdr/core/common';
-import { Buffer } from 'buffer';
+// import { Buffer } from 'buffer';
+import { base64ToUint8Array, uint8ArrayToBase64 } from '@websdr/core/transform';
 import { sleep } from '@websdr/core/utils';
 import { NngWebSocket, Protocol } from '@/common/nngWebSocket';
 import {
@@ -422,7 +423,8 @@ export class ControlWebUsb extends EventTarget {
     async flashReadSector(buf: Uint8Array, offs: number, gold: boolean = false): Promise<void> {
         const data = await this.sendCommand('FLASH_READ', { offset: offs, param: gold ? ControlWebUsb.FIRMWARE_GOLD : 0 });
         if (data && data.details && data.details.data) {
-            const encBuf = Buffer.from(data.details.data, 'base64');
+            // const encBuf = Buffer.from(data.details.data, 'base64');
+            const encBuf = base64ToUint8Array(data.details.data);
             buf.set(encBuf);
         } else {
             throw new Error('ControlWebUsb.flashRead: Error reading flash');
@@ -450,8 +452,9 @@ export class ControlWebUsb extends EventTarget {
     async flashWriteSector(buf: Uint8Array, offs: number, gold: boolean = false): Promise<void> {
         let cksum = 0;
         buf.forEach((val) => cksum += val);
-        const encBuf = Buffer.from(buf);
-        const data = encBuf.toString('base64');
+        // const encBuf = Buffer.from(buf);
+        // const data = encBuf.toString('base64');
+        const data = uint8ArrayToBase64(buf);
         await this.sendCommand('FLASH_WRITE', { offset: offs, checksum: cksum, param: gold ? ControlWebUsb.FIRMWARE_GOLD : 0 }, { req_data: data });
     }
 
