@@ -1,6 +1,6 @@
 {
     "name": "@websdr/frontend-core",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "description": "This is the core frontend package for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
@@ -37,8 +37,7 @@
         "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
-        "@websdr/core": "^0.5.2",
-        "buffer": "^6.0.3",
+        "@websdr/core": "^0.5.3",
         "usb": "^2.17.0"
     },
     "devDependencies": {
@@ -56,6 +55,11 @@
             "types": "./dist/common/index.d.ts",
             "import": "./dist/common/index.js",
             "require": "./dist/common/index.js"
+        },
+        "./control": {
+            "types": "./dist/control/control.d.ts",
+            "import": "./dist/control/control.js",
+            "require": "./dist/control/control.js"
         },
         "./services": {
             "types": "./dist/services/index.d.ts",
