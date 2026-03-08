@@ -349,6 +349,8 @@ From the repository root:
 
 ```bash
 npm install
+npm run build
+npm test --workspace=packages/frontend-core
 ```
 
 From this package folder:
