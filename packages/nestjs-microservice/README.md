@@ -178,6 +178,8 @@ From the repository root:
 
 ```bash
 npm install
+npm run build
+npm test --workspace=packages/nestjs-microservice
 ```
 
 From this package folder:

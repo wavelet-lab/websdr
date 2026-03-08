@@ -640,6 +640,8 @@ From the repository root:
 
 ```bash
 npm install
+npm run build
+npm test --workspace=packages/vue3-components
 ```
 
 From this package folder:

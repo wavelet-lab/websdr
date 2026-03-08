@@ -187,6 +187,8 @@ From the repository root:
 
 ```bash
 npm install
+npm run build
+npm test --workspace=packages/core
 ```
 
 From this package folder:
