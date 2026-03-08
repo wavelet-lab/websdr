@@ -22,6 +22,14 @@ Diagrams live in [webusb/diagrams/](webusb/diagrams/) (Mermaid sources `.mmd` an
 
 ---
 
+## Manual / Hardware Tests
+
+Manual (hardware-in-the-loop) testing docs:
+
+- [../test-apps/README.md](../test-apps/README.md)
+
+---
+
 ## Diagram Rendering (Mermaid)
 
 Diagrams are written in **[Mermaid](https://mermaid.js.org/) (`.mmd`)** and rendered to **SVG** for stable display in GitHub.

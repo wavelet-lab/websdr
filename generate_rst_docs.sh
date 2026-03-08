@@ -11,6 +11,7 @@ pandoc -s -f gfm -t rst --wrap=preserve -o $DIST_DIR/core.rst packages/core/READ
 pandoc -s -f gfm -t rst --wrap=preserve -o $DIST_DIR/frontend-core.rst packages/frontend-core/README.md
 pandoc -s -f gfm -t rst --wrap=preserve -o $DIST_DIR/nestjs-microservice.rst packages/nestjs-microservice/README.md
 pandoc -s -f gfm -t rst --wrap=preserve -o $DIST_DIR/vue3-components.rst packages/vue3-components/README.md
+pandoc -s -f gfm -t rst --wrap=preserve -o $DIST_DIR/test-apps.rst test-apps/README.md
 
 # Update links in the generated .rst files
 sed -E -i \
