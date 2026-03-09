@@ -33,17 +33,17 @@
         "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
-        "@nestjs/common": "^11.1.13",
+        "@nestjs/common": "^11.1.16",
         "@nestjs/config": "^4.0.3",
         "@nestjs/jwt": "^11.0.2",
-        "@nestjs/microservices": "^11.1.13",
+        "@nestjs/microservices": "^11.1.16",
         "@nestjs/passport": "^11.0.5",
-        "@nestjs/testing": "^11.1.13",
-        "@nestjs/websockets": "^11.1.13",
-        "@types/node": "^25.2.3",
+        "@nestjs/testing": "^11.1.16",
+        "@nestjs/websockets": "^11.1.16",
+        "@types/node": "^25.3.5",
         "@websdr/core": "^0.5.3",
         "class-transformer": "^0.5.1",
-        "class-validator": "^0.14.3",
+        "class-validator": "^0.15.1",
         "passport-jwt": "^4.0.1",
         "ws": "^8.19.0"
     },
