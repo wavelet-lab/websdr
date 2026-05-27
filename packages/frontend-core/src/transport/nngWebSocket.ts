@@ -1,3 +1,4 @@
+import { isDebugMode } from '@/common/debug';
 import { sleep } from '@websdr/core/utils';
 
 const nngVerbose = false;
@@ -91,6 +92,55 @@ export class NngWebSocket extends EventTarget {
         return this._binaryType === NngWebSocket.BLOB ? 'blob' : 'arraybuffer';
     }
 
+    protected createPublicEvent(event: Event): Event {
+        if (event instanceof MessageEvent) {
+            return new MessageEvent(event.type, {
+                data: event.data,
+                origin: event.origin,
+                lastEventId: event.lastEventId,
+                source: event.source,
+                ports: Array.from(event.ports),
+                bubbles: event.bubbles,
+                cancelable: event.cancelable,
+                composed: event.composed,
+            });
+        }
+
+        if (event instanceof CloseEvent) {
+            return new CloseEvent(event.type, {
+                wasClean: event.wasClean,
+                code: event.code,
+                reason: event.reason,
+                bubbles: event.bubbles,
+                cancelable: event.cancelable,
+                composed: event.composed,
+            });
+        }
+
+        if (typeof ErrorEvent !== 'undefined' && event instanceof ErrorEvent) {
+            return new ErrorEvent(event.type, {
+                message: event.message,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+                error: event.error,
+                bubbles: event.bubbles,
+                cancelable: event.cancelable,
+                composed: event.composed,
+            });
+        }
+
+        const publicEvent = new Event(event.type, {
+            bubbles: event.bubbles,
+            cancelable: event.cancelable,
+            composed: event.composed,
+        });
+        if ((event as any).data !== undefined) {
+            (publicEvent as any).data = (event as any).data;
+        }
+        return publicEvent;
+    }
+
     async open(url = undefined, binaryType = undefined, protocol = undefined) {
         if (url !== undefined) this._url = url
         if (binaryType !== undefined) this._binaryType = binaryType
@@ -135,7 +185,7 @@ export class NngWebSocket extends EventTarget {
     }
 
     async close() {
-        if (globalThis.debug_mode || nngVerbose)
+        if (isDebugMode() || nngVerbose)
             console.log(`NngWebSocket: close connection to url ${this._url}`);
         this._closing = true
         if (this._websocket !== undefined) {
@@ -175,7 +225,7 @@ export class NngWebSocket extends EventTarget {
         this._reqId = (this._reqId + 1) % REQ_ID_MOD;
     }
 
-    async send(data: string | ArrayBuffer | Uint8Array | Blob, timeoutMs = DEFAULT_SEND_TIMEOUT_MS): Promise<any> {
+    async send(data: string | Blob | BufferSource, timeoutMs = DEFAULT_SEND_TIMEOUT_MS): Promise<any> {
         if (!this.isConnected()) {
             return Promise.reject(`NngWebSocket: cannot send data, websocket to url ${this._url} is not connected`)
         }
@@ -276,7 +326,7 @@ export class NngWebSocket extends EventTarget {
             buf = event.data;
         }
 
-        if (globalThis.debug_mode || nngVerbose) {
+        if (isDebugMode() || nngVerbose) {
             let len = -1;
             if (buf != null) {
                 if (typeof buf === 'string') {
@@ -305,7 +355,7 @@ export class NngWebSocket extends EventTarget {
     }
 
     async onWsOpen(event: Event) {
-        if (globalThis.debug_mode || nngVerbose)
+        if (isDebugMode() || nngVerbose)
             console.log(`NngWebSocket: connection to url ${this._url} established`);
         if (this._open_promise) {
             if (this._open_promise.resolve)
@@ -313,19 +363,19 @@ export class NngWebSocket extends EventTarget {
             this._open_promise = undefined;
         }
 
-        this.dispatchEvent(event);
+        this.dispatchEvent(this.createPublicEvent(event));
     }
 
     async onWsClose(event: CloseEvent) {
         if (event.wasClean && this._closing) {
-            if (globalThis.debug_mode || nngVerbose)
+            if (isDebugMode() || nngVerbose)
                 console.log(`NngWebSocket: connection to url ${this._url} has been closed`);
         } else {
             const err_str = `NngWebSocket: connection to url ${this._url} has been droped... reopening`;
             if (this._open_promise) {
                 this._open_promise.reject?.(err_str);
                 this._open_promise = undefined;
-            } else if (globalThis.debug_mode || nngVerbose) console.error(err_str);
+            } else if (isDebugMode() || nngVerbose) console.error(err_str);
 
             if (this._reconnectTime !== -1) {
                 await sleep(this._reconnectTime);
@@ -334,11 +384,11 @@ export class NngWebSocket extends EventTarget {
         }
 
         // dispatch the actual CloseEvent so listeners get reason/code/etc.
-        this.dispatchEvent(event);
+        this.dispatchEvent(this.createPublicEvent(event));
     }
 
     async onWsMessage(event: MessageEvent) {
-        if (globalThis.debug_mode || nngVerbose)
+        if (isDebugMode() || nngVerbose)
             console.log('NngWebSocket: receive event', event);
         // if we received a Blob, convert it to ArrayBuffer first so receive() can parse header
         if (typeof Blob !== 'undefined' && event.data instanceof Blob) {
@@ -351,7 +401,7 @@ export class NngWebSocket extends EventTarget {
         }
         const buf = this.receive(event);
         if (buf) this.dispatchEvent(new CustomEvent('data', { detail: { data: buf } }));
-        this.dispatchEvent(event);
+        this.dispatchEvent(this.createPublicEvent(event));
     }
 
     async onWsError(event: Event) {
@@ -368,7 +418,7 @@ export class NngWebSocket extends EventTarget {
             }
         }
         const err_str = `NngWebSocket: connection to url ${this._url}: an error has occurred: ` + detailStr;
-        if (globalThis.debug_mode || nngVerbose) console.error(err_str, event);
+        if (isDebugMode() || nngVerbose) console.error(err_str, event);
 
         if (this._open_promise) {
             this._open_promise.reject?.(err_str);
@@ -379,6 +429,6 @@ export class NngWebSocket extends EventTarget {
             this._send_promises[Number(k)]!.reject?.(err_str);
             delete this._send_promises[Number(k)];
         }
-        this.dispatchEvent(event);
+        this.dispatchEvent(this.createPublicEvent(event));
     }
 }

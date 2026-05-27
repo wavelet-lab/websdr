@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { NngWebSocket, Protocol } from '@/common/nngWebSocket'
+import { NngWebSocket, Protocol } from '@/transport/nngWebSocket'
 
 /**
  * Re-declare a minimal FakeWebSocket for these additional tests so they can run standalone.
@@ -157,6 +157,22 @@ describe('NngWebSocket additional tests', () => {
 
         expect(got.data).toBe('plain-text-msg')
         expect(got.messageCount).toBeGreaterThanOrEqual(1)
+    })
+
+    it('dispatches a fresh public open event instead of reusing the WebSocket event', async () => {
+        const nng = new NngWebSocket({ url: 'ws://open-event-clone', protocol: Protocol.SUB })
+        const original = new Event('open')
+        let publicEvent: Event | undefined
+
+        nng.addEventListener('open', (event) => {
+            publicEvent = event
+        })
+
+        await (nng as any).onWsOpen(original)
+
+        expect(publicEvent).toBeInstanceOf(Event)
+        expect(publicEvent).not.toBe(original)
+        expect(publicEvent?.type).toBe('open')
     })
 
     it('non-REQ send after close rejects as not connected', async () => {
