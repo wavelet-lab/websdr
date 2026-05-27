@@ -23,7 +23,13 @@ describe('SdrInput.vue', () => {
         vi.clearAllMocks()
     })
 
+    afterEach(() => {
+        vi.unstubAllGlobals()
+    })
+
     it('renders placeholder when no device provided', async () => {
+        vi.stubGlobal('navigator', { usb: { requestDevice: vi.fn() } })
+
         const wrapper = mount(SdrInput, {
             props: { device: { devName: '', vendorId: 0, productId: 0 } }, // provide empty device to satisfy required prop
             global: { stubs: { Dropdown: DropdownStub } }
@@ -36,6 +42,8 @@ describe('SdrInput.vue', () => {
     })
 
     it('shows device name and status=success when device prop provided', async () => {
+        vi.stubGlobal('navigator', { usb: { requestDevice: vi.fn() } })
+
         const device = { devName: 'SDR-One', vendorId: 123, productId: 456 }
         const wrapper = mount(SdrInput, {
             props: { device },
@@ -49,6 +57,8 @@ describe('SdrInput.vue', () => {
     })
 
     it('calls WebUsb manager and emits update::device on open', async () => {
+        vi.stubGlobal('navigator', { usb: { requestDevice: vi.fn() } })
+
         const device = { devName: 'USB-Device', vendorId: 1, productId: 2 }
         const mockManager = { requestDevice: vi.fn().mockResolvedValue(device) }
             ; (getWebUsbManagerInstance as any).mockReturnValue(mockManager)
@@ -58,7 +68,7 @@ describe('SdrInput.vue', () => {
             global: { stubs: { Dropdown: DropdownStub } }
         })
 
-        const dropdown = wrapper.findComponent(DropdownStub)
+        const dropdown = wrapper.findComponent<any>(DropdownStub)
         // simulate open event -> component should call requestUsb -> selectUsb -> emit update::device
         await dropdown.vm.$emit('open')
         // wait for promise resolution and next ticks
@@ -73,5 +83,26 @@ describe('SdrInput.vue', () => {
         expect(emitted).toBeTruthy()
         expect((emitted![0] as any)[0]).toBeDefined()
         expect((emitted![0] as any)[0].devName).toBe('USB-Device')
+    })
+
+    it('shows a friendly message immediately when WebUSB is not supported', async () => {
+        vi.stubGlobal('navigator', {})
+
+        const wrapper = mount(SdrInput, {
+            props: { device: { devName: '', vendorId: 0, productId: 0 } },
+            global: { stubs: { Dropdown: DropdownStub } }
+        })
+
+        expect(wrapper.text()).toContain('❗ WebUSB is not supported in this browser')
+        expect(wrapper.find('.dd-status').text()).toBe('error')
+
+        const dropdown = wrapper.findComponent<any>(DropdownStub)
+        await dropdown.vm.$emit('open')
+        await nextTick()
+
+        expect(getWebUsbManagerInstance).not.toHaveBeenCalled()
+        expect(wrapper.text()).toContain('❗ WebUSB is not supported in this browser')
+        expect(wrapper.find('.dd-status').text()).toBe('error')
+        expect(wrapper.emitted()['update:device']).toBeFalsy()
     })
 })
