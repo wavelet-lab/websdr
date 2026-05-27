@@ -4,9 +4,20 @@ import './webUsbDevices.autogen';
 
 // Re-exporting all types from WebUsb module
 export {
-    WebUsbChannels, ControlWebUsb, ControlWebUsbInitialParams
+    buildWebUsbStreamingParam,
+    ControlWebUsb,
+    ControlWebUsbInitialParams,
+    WebUsbChannels,
+    WebUsbStreamingParamFlag,
+    WebUsbStreamingParamSpecial,
+    WebUsbStreamingSync,
 } from './controlWebUsb';
-export type { WebUsbDeviceInfo, RequestKeys, ControlWebUsbParams } from './controlWebUsb';
+export type {
+    ControlWebUsbParams,
+    RequestKeys,
+    WebUsbDeviceInfo,
+    WebUsbStreamingParamOptions,
+} from './controlWebUsb';
 export {
     SDRDevicesIds, getDeviceHash, registerWebUsbInstance,
     getWebUsbInstance
@@ -20,6 +31,16 @@ export type {
     DeviceParamRange, DeviceStreamParameters, DeviceStreamTypes, DeviceDataTypes,
     DeviceConfiguration
 } from './deviceParameters';
+export { WebUsbDeviceControlBase } from './webUsbDeviceControlBase';
+export type {
+    DeviceDirectionParameterState,
+    DeviceParameterInitialState,
+    DeviceParameterKey,
+    DeviceParameterState,
+    DeviceStreamingStartOptions,
+    DeviceStreamingStartResult,
+    WebUsbDeviceControlBaseParams,
+} from './webUsbDeviceControlBase';
 export { CommandQueue } from './commandQueue';
 export type { CommandRequest } from './commandQueue';
 export { WebUsbEndpoints, WebUsb } from './webUsbBase';
@@ -32,3 +53,5 @@ export type { WebUsbManagerParams } from './webUsbDeviceManager';
 export { WebUsbManagerMode, getWebUsbManagerInstance, WebUsbManager } from './webUsbManager';
 export type { RequestDeviceInfo } from './webUsbManager';
 export { ensureWebUsb } from './ensureWebUsb';
+export { WebUsbSourceSink } from './streaming/webUsbSourceSink';
+export type { WebUsbSourceSinkParams } from './streaming/webUsbSourceSink';

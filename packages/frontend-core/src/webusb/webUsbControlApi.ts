@@ -1,12 +1,12 @@
+import { isDebugMode } from "@/common/debug";
 import { WebUsbEndpoints } from "./webUsbBase";
-// import { WASMErrno } from "@/common/wasmErrno";
 
 const debug_ep_log = false;
 const debug_write_log = false;
 
 export async function write_ep1(fd: number, data: number, len: number): Promise<number> {
     // const start = Date.now();
-    if (globalThis.debug_mode || debug_ep_log)
+    if (isDebugMode() || debug_ep_log)
         console.log(`write_ep1(${fd}, ${data}, ${len}): `/* start = ${start}` */)
     const dev = globalThis.webUsbDeviceManager?.getDevice(fd);
     if (!dev || !dev.module || !dev.write) {
@@ -14,7 +14,7 @@ export async function write_ep1(fd: number, data: number, len: number): Promise<
         return 0;
     }
     const buf = new Uint8Array(dev.module.HEAPU8.buffer, ((data) >> 0), len);
-    if (globalThis.debug_mode) console.log(buf.subarray(0, 10))
+    if (isDebugMode()) console.log(buf.subarray(0, 10))
     dev.write(WebUsbEndpoints.CONTROL_EP, buf as BufferSource);
     // const end = Date.now();
     // console.log(`write_ep1(${fd}, ${data}, ${len}): duration = ${end - start}`)
@@ -23,7 +23,7 @@ export async function write_ep1(fd: number, data: number, len: number): Promise<
 
 export async function write_ep2(fd: number, data: number, len: number): Promise<number> {
     // const start = Date.now();
-    if (globalThis.debug_mode || debug_ep_log)
+    if (isDebugMode() || debug_ep_log)
         console.log(`write_ep2(${fd}, ${data}, ${len}): `/* start = ${start}` */)
     const dev = globalThis.webUsbDeviceManager?.getDevice(fd);
     if (!dev || !dev.module || !dev.write) {
@@ -31,7 +31,7 @@ export async function write_ep2(fd: number, data: number, len: number): Promise<
         return 0;
     }
     const buf = new Uint8Array(dev.module.HEAPU8.buffer, ((data) >> 0), len);
-    if (globalThis.debug_mode) console.log(buf.subarray(0, 10))
+    if (isDebugMode()) console.log(buf.subarray(0, 10))
     dev.write(WebUsbEndpoints.NOTIFY_EP, buf as BufferSource);
     // const end = Date.now();
     // console.log(`write_ep2(${fd}, ${data}, ${len}): duration = ${end - start}`)
@@ -40,7 +40,7 @@ export async function write_ep2(fd: number, data: number, len: number): Promise<
 
 export async function read_ep1(fd: number, data: number, len: number): Promise<number> {
     // const start = Date.now();
-    if (globalThis.debug_mode || debug_ep_log)
+    if (isDebugMode() || debug_ep_log)
         console.log(`read_ep1(${fd}, ${data}, ${len}): `/* start = ${start}` */)
     const dev = globalThis.webUsbDeviceManager?.getDevice(fd);
     if (!dev || !dev.module || !dev.read) {
@@ -55,7 +55,7 @@ export async function read_ep1(fd: number, data: number, len: number): Promise<n
         const buf = new Uint8Array(dev.module.HEAPU8.buffer, ((data) >> 0), len);
         const readbackvalue = new Uint8Array(result.data.buffer);
         buf.set(readbackvalue);
-        if (globalThis.debug_mode)
+        if (isDebugMode())
             console.log(` => rb ${readbackvalue}`);
         return readbackvalue.length;
     }
@@ -64,7 +64,7 @@ export async function read_ep1(fd: number, data: number, len: number): Promise<n
 
 export async function read_ep2(fd: number, data: number, len: number): Promise<number> {
     // const start = Date.now();
-    if (globalThis.debug_mode || debug_ep_log)
+    if (isDebugMode() || debug_ep_log)
         console.log(`read_ep2(${fd}, ${data}, ${len}): `/* start = ${start}` */)
     const dev = globalThis.webUsbDeviceManager?.getDevice(fd);
     if (!dev || !dev.module || !dev.read) {
@@ -79,7 +79,7 @@ export async function read_ep2(fd: number, data: number, len: number): Promise<n
         const buf = new Uint8Array(dev.module.HEAPU8.buffer, ((data) >> 0), len);
         const readbackvalue = new Uint8Array(result.data.buffer);
         buf.set(readbackvalue);
-        if (globalThis.debug_mode)
+        if (isDebugMode())
             console.log(` => ntfy ${readbackvalue}`);
         return readbackvalue.length;
     }
@@ -87,7 +87,7 @@ export async function read_ep2(fd: number, data: number, len: number): Promise<n
 }
 
 export async function write_log_js(fd: number, severity: number, str: number): Promise<number> {
-    if (globalThis.debug_mode || debug_write_log) {
+    if (isDebugMode() || debug_write_log) {
         const dev = globalThis.webUsbDeviceManager?.getDevice(fd);
         if (!dev || !dev.module) return 0;
         var s = dev.module.AsciiToString(str);

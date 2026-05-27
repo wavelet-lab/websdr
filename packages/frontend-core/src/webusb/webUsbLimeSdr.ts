@@ -8,6 +8,7 @@ import {
     DataType, COMPLEX_FLOAT_SIZE, COMPLEX_INT16_SIZE
 } from '@websdr/core/common';
 import { registerWebUsbInstance } from './webUsb';
+import { isDebugMode } from '@/common/debug';
 
 
 const debug_usb_log = false;
@@ -26,7 +27,7 @@ export class WebUsbLimeSdr extends WebUsbWasm {
 
     constructor(parms: WebUsbParams) {
         super(parms)
-        if (globalThis.debug_mode || debug_usb_log) console.log('Created WebUsbLimeSdr')
+        if (isDebugMode() || debug_usb_log) console.log('Created WebUsbLimeSdr')
     }
 
     getConfiguration(): DeviceConfiguration {
@@ -94,7 +95,7 @@ export class WebUsbLimeSdr extends WebUsbWasm {
     }
 
     async decodeRxData(data: DataView, samples: number, opts?: RXDecoderOptions): Promise<RXBuffer> {
-        if (globalThis.debug_mode || debug_usb_log) console.log('RECEIVED DATA', data)
+        if (isDebugMode() || debug_usb_log) console.log('RECEIVED DATA', data)
         const id = opts !== undefined && opts.id !== undefined ? opts.id : -1;
         const packetCnt = (data.byteLength / WebUsbLimeSdr.PACKET_SIZE) >> 0;
         const dataSize = data.byteLength - WebUsbLimeSdr.HEADER_SIZE * packetCnt;
@@ -131,7 +132,7 @@ export class WebUsbLimeSdr extends WebUsbWasm {
             }
         }
 
-        if (globalThis.debug_mode || debug_usb_log) console.log('RECEIVE timestamp', timestamp - this._lastRecvTimestamp, timestamp, this._lastRecvTimestamp, 'output', output.byteLength);
+        if (isDebugMode() || debug_usb_log) console.log('RECEIVE timestamp', timestamp - this._lastRecvTimestamp, timestamp, this._lastRecvTimestamp, 'output', output.byteLength);
         const ret: RXBuffer = {
             data: output,
             datatype: datatype,
@@ -150,7 +151,7 @@ export class WebUsbLimeSdr extends WebUsbWasm {
     }
 
     async encodeTxData(data: TXBuffer, opts?: TXEncoderOptions): Promise<ArrayBufferLike> {
-        if (globalThis.debug_mode || debug_usb_log) console.log('DATA TO SEND', data, data.data.slice(0, 10));
+        if (isDebugMode() || debug_usb_log) console.log('DATA TO SEND', data, data.data.slice(0, 10));
         // console.log('SEND TIMESTAMP', data.timestamp, data.byteLength /* , data.data.slice(0, 10), data.data.slice(data.size - 10, data.size) */);
         // const viewin = new Int16Array(data.data, data.byteOffset, data.byteLength);
         // console.log('VIEWIN', viewin.length, viewin);

@@ -7,6 +7,7 @@ import { DataType } from '@websdr/core/common';
 import { COMPLEX_FLOAT_SIZE, COMPLEX_INT16_SIZE } from '@websdr/core/common';
 import { bufferF32ToI16, bufferI16ToF32 } from '@websdr/core/transform';
 import { sleep } from '@websdr/core/utils';
+import { isDebugMode } from '@/common/debug';
 
 const debug_webusb = false;
 
@@ -46,7 +47,6 @@ export interface RXBuffer {
  * Optional parameters passed to `decodeRxData` to control decoding.
  */
 export interface RXDecoderOptions {
-    extra_meta?: boolean, // If true, driver should include extra metadata
     datatype?: DataType, // Hint/override for expected incoming data type
     data?: ArrayBufferLike, // Optional pre-fetched data buffer to decode
     id?: number, // Optional id propagated for debugging/traceability
@@ -248,7 +248,7 @@ export abstract class WebUsb extends EventTarget {
      * configuration (control transfers etc.).
      */
     async open(device?: USBDevice): Promise<boolean> {
-        if (debug_webusb) console.log('WebUsbBase.open()')
+        if (isDebugMode() || debug_webusb) console.log('WebUsbBase.open()')
         navigator.usb.removeEventListener("connect", this._onConnect);
         navigator.usb.removeEventListener("disconnect", this._onDisconnect);
         navigator.usb.addEventListener("connect", this._onConnect);
@@ -256,17 +256,17 @@ export abstract class WebUsb extends EventTarget {
         this.device = device;
         if (!this.device) {
             const devices = await navigator.usb.getDevices();
-            if (debug_webusb) console.log('DEVICES', devices)
+            if (isDebugMode() || debug_webusb) console.log('DEVICES', devices)
             for (let device of devices) {
-                if (debug_webusb) console.log('DEVICE', device, this.vid, this.pid)
+                if (isDebugMode() || debug_webusb) console.log('DEVICE', device, this.vid, this.pid)
                 if (device.vendorId === this.vid && device.productId === this.pid) {
                     this.device = device;
-                    if (debug_webusb) console.log('FOUND DEVICE', device)
+                    if (isDebugMode() || debug_webusb) console.log('FOUND DEVICE', device)
                     break;
                 }
             }
         }
-        if (globalThis.debug_mode || debug_webusb) console.log('WebUsbBase.device', this.device)
+        if (isDebugMode() || debug_webusb) console.log('WebUsbBase.device', this.device)
         // Ensure TX manager is usable after open (recreate if it was closed)
         if (this._txManager?.isClosed()) {
             this._initTxManager();
@@ -287,7 +287,7 @@ export abstract class WebUsb extends EventTarget {
      * commands and release resources held by the control module.
      */
     async close() {
-        if (debug_webusb) console.log('WebUsbBase.close()')
+        if (isDebugMode() || debug_webusb) console.log('WebUsbBase.close()')
         navigator.usb.removeEventListener("connect", this._onConnect);
         navigator.usb.removeEventListener("disconnect", this._onDisconnect);
         this._commandQueue.clear();
@@ -540,7 +540,7 @@ export abstract class WebUsb extends EventTarget {
      * simply logs in debug mode.
      */
     async onConnect(usb: USB, event: USBConnectionEvent) {
-        if (globalThis.debug_mode)
+        if (isDebugMode())
             console.log(`WebUsb: connection to device ${this.device?.vendorId}:${this.device?.productId} established`);
         this.dispatchEvent(new Event('connect', event));
     }
@@ -550,7 +550,7 @@ export abstract class WebUsb extends EventTarget {
      * logs the event; drivers should perform cleanup when appropriate.
      */
     async onDisconnect(usb: USB, event: USBConnectionEvent) {
-        if (globalThis.debug_mode)
+        if (isDebugMode())
             console.log(`WebUsb: connection to device ${this.device?.vendorId}:${this.device?.productId} has been closed`);
         this.dispatchEvent(new Event('disconnect', event));
     }

@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ControlWebUsb } from '@/webusb/controlWebUsb';
+import {
+    buildWebUsbStreamingParam,
+    ControlWebUsb,
+    WebUsbStreamingParamFlag,
+    WebUsbStreamingParamSpecial,
+    WebUsbStreamingSync,
+} from '@/webusb/controlWebUsb';
 import { WebUsbManagerMode } from '@/webusb/webUsbManager';
 import { DataType } from '@websdr/core/common';
 
@@ -36,6 +42,28 @@ describe('ControlWebUsb', () => {
         delete (globalThis as any).Worker;
     });
 
+    describe('buildWebUsbStreamingParam', () => {
+        it('should build the default start param', () => {
+            expect(buildWebUsbStreamingParam()).toBe(WebUsbStreamingSync.DONT_CHANGE);
+        });
+
+        it('should encode sync, stop and restart bits', () => {
+            expect(buildWebUsbStreamingParam({
+                sync: WebUsbStreamingSync.NONE,
+                start: false,
+                restart: true,
+            })).toBe(WebUsbStreamingSync.NONE | WebUsbStreamingParamFlag.DO_NOT_START | WebUsbStreamingParamFlag.RESTART);
+        });
+
+        it('should return the special timestamp value as is', () => {
+            expect(buildWebUsbStreamingParam({
+                special: WebUsbStreamingParamSpecial.DONT_TOUCH_TIMESTAMP,
+                sync: WebUsbStreamingSync.RX,
+                restart: true,
+            })).toBe(42);
+        });
+    });
+
     describe('constructor', () => {
         it('should create instance with default parameters', () => {
             const ctrl = new ControlWebUsb();
@@ -44,9 +72,6 @@ describe('ControlWebUsb', () => {
 
         it('should create instance with custom parameters', () => {
             const ctrl = new ControlWebUsb({
-                control_ep: 1,
-                control_rep_ep: 2,
-                notification_ep: 3,
                 type: DataType.ci16,
                 mode: WebUsbManagerMode.WORKER,
             });

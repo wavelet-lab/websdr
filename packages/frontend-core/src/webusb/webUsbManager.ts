@@ -7,6 +7,7 @@ import type {
 import { SDRDevicesIds } from './webUsb';
 import { PromiseHelper } from '@websdr/core/utils';
 import type { WebUsbWorkerResponse } from './webUsb.worker.types';
+import { isDebugMode } from '@/common/debug';
 
 
 let webUsbManager: Array<WebUsbManager | undefined> = [undefined, undefined, undefined, undefined];
@@ -118,6 +119,7 @@ class WebUsbSingleManager extends WebUsbManager {
     }
 
     async getRXSamplesCount(fd: number, samples: number): Promise<number> {
+        console.log(`WebUsbSingleManager.getRXSamplesCount: fd ${fd}, requested samples ${samples}`);
         return globalThis.webUsbDeviceManager?.getDevice(fd)?.getRXSamplesCount(samples) || 0;
     }
 
@@ -337,7 +339,7 @@ class WebUsbWorkerManager extends WebUsbManager {
 
     protected onWorkerMessage(event: MessageEvent) {
         const msg = event.data as WebUsbWorkerResponse;
-        if (globalThis.debug_mode) console.log('Message from WebUsbWorker', msg)
+        if (isDebugMode()) console.log('Message from WebUsbWorker', msg)
 
         let promise = undefined;
         if (typeof msg.id === 'number') promise = this._promiseHelper.getPromise(msg.id);

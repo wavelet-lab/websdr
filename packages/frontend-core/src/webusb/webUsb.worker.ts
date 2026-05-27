@@ -5,6 +5,7 @@ import type {
     WebUsbWorkerResponse,
     WebUsbRequestType,
 } from './webUsb.worker.types';
+import { isDebugMode } from '@/common/debug';
 
 // hoist reusable sets to module scope to avoid recreating them per message
 const NON_MANAGER_TYPES: ReadonlySet<WebUsbRequestType> = new Set([
@@ -37,7 +38,7 @@ self.onmessage = async (event: MessageEvent<unknown>) => {
     }
 
     try {
-        if (globalThis.debug_mode) console.log('Message from WebUsb', msg);
+        if (isDebugMode()) console.log('Message from WebUsb', msg);
         let dev: WebUsb | undefined = undefined;
         let ret: any;
 
