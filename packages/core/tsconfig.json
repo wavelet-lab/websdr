@@ -4,10 +4,9 @@
         "rootDir": "src",
         "outDir": "dist",
         // Path Mapping
-        "baseUrl": ".",
         "paths": {
             "@/*": [
-                "src/*"
+                "./src/*"
             ],
             "vitest": [
                 "../../node_modules/vitest"
@@ -18,7 +17,8 @@
         "target": "esnext",
         "moduleResolution": "bundler",
         "types": [
-            "vitest/globals"
+            "vitest/globals",
+            "emscripten"
         ],
         // Other Outputs
         "sourceMap": false,
@@ -46,7 +46,8 @@
         "skipLibCheck": true,
     },
     "include": [
-        "src/**/*"
+        "src/**/*",
+        "node_modules/@types/"
     ],
     "exclude": [
         "node_modules",
