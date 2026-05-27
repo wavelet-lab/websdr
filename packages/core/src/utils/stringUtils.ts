@@ -10,3 +10,10 @@ export function containsAnySubstr(str: string | undefined | null, substrs: strin
     }
     return false;
 }
+export function printBin(v: number, d = 8) {
+    let ret = '';
+    for (let mask = 1 << (d - 1); mask > 0; mask >>= 1) {
+        ret += (v & mask) ? '1' : '0';
+    }
+    return ret;
+}
