@@ -120,7 +120,15 @@ Manual test notes and troubleshooting: [test-apps/README.md](test-apps/README.md
 
 ## Environment / Configuration
 
-- `packages/nestjs-microservice` reads configuration from environment variables (prefixed with `WEBSDR_` in places). See the module entry and code for exact variable names.
+`packages/nestjs-microservice` uses the host NestJS application's environment. The package currently reads:
+
+| Variable | Required | Default | Used for |
+| --- | --- | --- | --- |
+| `JWT_SECRET` | Recommended | `just_a_demo_secret_key_you_should_change_me` | JWT signing secret. Set a strong value outside development. |
+| `JWT_ALGORITHM` | No | `HS256` | JWT signing algorithm. |
+| `JWT_EXPIRES_IN` | No | `1h` | Default access-token lifetime. |
+| `LOG_LEVELS` | No | NestJS default | Optional comma-separated NestJS log levels, or `all`/`on`/`off`, when wired through the logging helpers. |
+| `NODE_ENV` | No | unset | When set to `production`, auth cookies are marked `secure`. |
 
 ## Funding
 
