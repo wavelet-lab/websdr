@@ -124,6 +124,13 @@ Manual test notes and troubleshooting: [test-apps/README.md](test-apps/README.md
 
 - `packages/nestjs-microservice` reads configuration from environment variables (prefixed with `WEBSDR_` in places). See the module entry and code for exact variable names.
 
+## Funding
+
+This project is funded through [NGI0 Commons Fund](https://nlnet.nl/commonsfund), a fund established by [NLnet](https://nlnet.nl) with financial support from the European Commission's [Next Generation Internet](https://ngi.eu) program. Learn more at the [NLnet project page](https://nlnet.nl/project/WSDR).
+
+[<img src="https://nlnet.nl/logo/banner.png" alt="NLnet foundation logo" width="20%" />](https://nlnet.nl)
+[<img src="https://nlnet.nl/image/logos/NGI0_tag.svg" alt="NGI Zero Logo" width="20%" />](https://nlnet.nl/commonsfund)
+
 ## License
 
 WebSDR is [MIT licensed](https://github.com/wavelet-lab/websdr/blob/main/LICENSE)
