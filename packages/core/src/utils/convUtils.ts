@@ -1,26 +1,34 @@
-export function stringToBoolean(str: string | null | undefined): boolean {
-    try {
-        switch (str?.toLowerCase()?.trim()) {
-            case "true":
-            case "yes":
-            case "1":
-                return true;
-
-            case "false":
-            case "no":
-            case "0":
-            case "":
-            case "null":
-            case "undefined":
-            case null:
-            case undefined:
-                return false;
-
-            default:
-                throw new Error("Invalid input");
-        }
-    } catch (err) {
-        console.error("stringToBoolean: error converting ", str, " to boolean");
+export function toBoolean(value: unknown): boolean {
+    if (typeof value === "boolean") {
+        return value;
     }
+
+    if (typeof value === "number") {
+        return Boolean(value);
+    }
+
+    if (typeof value !== "string") {
+        return false;
+    }
+
+    switch (value.toLowerCase().trim()) {
+        case "true":
+        case "yes":
+        case "1":
+        case "on":
+            return true;
+
+        case "false":
+        case "no":
+        case "0":
+        case "off":
+        case "":
+        case "null":
+        case "undefined":
+            return false;
+    }
+
     return false;
 }
+
+export const stringToBoolean = toBoolean;

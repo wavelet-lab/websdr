@@ -8,6 +8,7 @@ import { WebUsbWasm } from './webUsbWasm';
 import {
     DataType, CHUNK_SIZE, COMPLEX_FLOAT_SIZE, COMPLEX_INT16_SIZE
 } from '@websdr/core/common';
+import { isDebugMode } from '@/common/debug';
 
 const debug_usb_log = false;
 
@@ -74,11 +75,10 @@ export abstract class WebUsbWsdr extends WebUsbWasm {
     }
 
     async decodeRxData(data: DataView, samples: number, opts?: RXDecoderOptions): Promise<RXBuffer> {
-        if (globalThis.debug_mode || debug_usb_log)
+        if (isDebugMode() || debug_usb_log)
             console.log('RECEIVED DATA', data)
         const id = opts !== undefined && opts.id !== undefined ? opts.id : -1;
-        const extraMeta = true; // now it's always extra meta (old condition: opts?.extra_meta === true;)
-        const trailerSize = WebUsbWsdr.TRAILER_SIZE + (extraMeta ? WebUsbWsdr.TRAILER_EXTRA_SIZE : 0);
+        const trailerSize = WebUsbWsdr.TRAILER_SIZE + WebUsbWsdr.TRAILER_EXTRA_SIZE;
         const dataSize = data.byteLength - trailerSize;
         const samplesRecv = (dataSize / COMPLEX_INT16_SIZE) >> 0;
         if (samples !== samplesRecv) {
@@ -88,11 +88,10 @@ export abstract class WebUsbWsdr extends WebUsbWasm {
         const overrun = Number(ts & BigInt(0x0000000000ffffff));
         let realigned = 0;
         let dropped = 0;
-        if (extraMeta) {
-            const extra = data.getBigUint64(dataSize + WebUsbWsdr.TRAILER_SIZE, true);
-            realigned = Number(extra >> BigInt(64 - 20))
-            dropped = Number(extra & BigInt(0xffff))
-        }
+
+        const extra = data.getBigUint64(dataSize + WebUsbWsdr.TRAILER_SIZE, true);
+        realigned = Number(extra >> BigInt(64 - 20))
+        dropped = Number(extra & BigInt(0xffff))
 
         const datatype = opts?.datatype || DataType.ci16;
         const elementSize = (datatype === DataType.cf32 || datatype === DataType.f32) ? COMPLEX_FLOAT_SIZE : COMPLEX_INT16_SIZE;
@@ -102,7 +101,7 @@ export abstract class WebUsbWsdr extends WebUsbWasm {
         this._timestamp += BigInt(overrun * samplesRecv);
 
         // console.log('RECEIVED TIMESTAMP', this._timestamp);
-        if (globalThis.debug_mode || debug_usb_log) console.log('RECEIVE timestamp', this._timestamp, overrun, 'output', output.byteLength);
+        if (isDebugMode() || debug_usb_log) console.log('RECEIVE timestamp', this._timestamp, overrun, 'output', output.byteLength);
 
         const ret: RXBuffer = {
             data: output,
@@ -121,7 +120,7 @@ export abstract class WebUsbWsdr extends WebUsbWasm {
     }
 
     async encodeTxData(data: TXBuffer, opts?: TXEncoderOptions): Promise<ArrayBufferLike> {
-        if (globalThis.debug_mode || debug_usb_log)
+        if (isDebugMode() || debug_usb_log)
             console.log('DATA TO SEND', data, data.datatype, data.byteOffset, data.byteLength);
         // console.log('SEND TIMESTAMP', data.timestamp, data.byteLength);
         // const viewin = new Int16Array(data.data, data.byteOffset, data.byteLength);
@@ -190,7 +189,7 @@ export class WebUsbXsdr extends WebUsbWsdr {
 
     constructor(parms: WebUsbParams) {
         super(parms)
-        if (globalThis.debug_mode || debug_usb_log)
+        if (isDebugMode() || debug_usb_log)
             console.log('Created WebUsbXsdr')
     }
 
@@ -215,7 +214,7 @@ export class WebUsbUsdr extends WebUsbWsdr {
 
     constructor(parms: WebUsbParams) {
         super(parms)
-        if (globalThis.debug_mode || debug_usb_log)
+        if (isDebugMode() || debug_usb_log)
             console.log('Created WebUsbUsdr')
     }
 

@@ -1,45 +1,54 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { stringToBoolean } from "@/utils/convUtils";
+import { describe, it, expect } from "vitest";
+import { stringToBoolean, toBoolean } from "@/utils/convUtils";
 
-describe("stringToBoolean", () => {
-    beforeEach(() => {
-        vi.restoreAllMocks();
-    });
-
+describe("toBoolean", () => {
     it("returns true for truthy textual values (case-insensitive, trimmed)", () => {
-        expect(stringToBoolean("true")).toBe(true);
-        expect(stringToBoolean(" TrUe  ")).toBe(true);
-        expect(stringToBoolean("yes")).toBe(true);
-        expect(stringToBoolean("  YES")).toBe(true);
-        expect(stringToBoolean("1")).toBe(true);
+        expect(toBoolean("true")).toBe(true);
+        expect(toBoolean(" TrUe  ")).toBe(true);
+        expect(toBoolean("yes")).toBe(true);
+        expect(toBoolean("  YES")).toBe(true);
+        expect(toBoolean("1")).toBe(true);
+        expect(toBoolean("on")).toBe(true);
     });
 
     it("returns false for explicit falsey textual values", () => {
-        expect(stringToBoolean("false")).toBe(false);
-        expect(stringToBoolean("No")).toBe(false);
-        expect(stringToBoolean("0")).toBe(false);
-        expect(stringToBoolean("")).toBe(false);
+        expect(toBoolean("false")).toBe(false);
+        expect(toBoolean("No")).toBe(false);
+        expect(toBoolean("0")).toBe(false);
+        expect(toBoolean("off")).toBe(false);
+        expect(toBoolean("")).toBe(false);
     });
 
-    it("parses JSON for other strings (e.g. \"null\" -> null)", () => {
-        expect(stringToBoolean("null")).toBe(false);
+    it("returns false for null-like values", () => {
+        expect(toBoolean("null")).toBe(false);
+        expect(toBoolean("undefined")).toBe(false);
+        expect(toBoolean(null)).toBe(false);
+        expect(toBoolean(undefined)).toBe(false);
     });
 
-    it("returns false and logs an error for invalid JSON strings", () => {
-        const spy = vi.spyOn(console, "error").mockImplementation(() => { });
-        expect(stringToBoolean("not a json")).toBe(false);
-        expect(spy).toHaveBeenCalled();
-        spy.mockRestore();
+    it("passes boolean values through", () => {
+        expect(toBoolean(true)).toBe(true);
+        expect(toBoolean(false)).toBe(false);
     });
 
-    it("handles actual null and undefined inputs by returning false and logging an error", () => {
-        const spy = vi.spyOn(console, "error").mockImplementation(() => { });
+    it("converts number values using JavaScript boolean semantics", () => {
+        expect(toBoolean(1)).toBe(true);
+        expect(toBoolean(-1)).toBe(true);
+        expect(toBoolean(0)).toBe(false);
+        expect(toBoolean(NaN)).toBe(false);
+    });
 
-        // call with values that violate the declared type to exercise runtime behavior
-        expect(stringToBoolean('asd')).toBe(false);
+    it("returns false for unsupported values", () => {
+        expect(toBoolean({ value: "true" })).toBe(false);
+    });
 
-        // console.error should have been called at least once for the thrown JSON.parse or type error
-        expect(spy).toHaveBeenCalled();
-        spy.mockRestore();
+    it("returns false for unknown strings", () => {
+        expect(toBoolean("not a json")).toBe(false);
+        expect(toBoolean('asd')).toBe(false);
+    });
+
+    it("keeps stringToBoolean as a backwards-compatible alias", () => {
+        expect(stringToBoolean).toBe(toBoolean);
+        expect(stringToBoolean("true")).toBe(true);
     });
 });

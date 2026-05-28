@@ -1,7 +1,14 @@
+import { getEnvValue } from "@/common/env";
+
 // Minimal API helper for the frontend
-// Use import.meta.env.VITE_API_URL for absolute API base, or rely on the dev proxy (/api)
+// Use VITE_API_URL/API_URL for an absolute API base, or rely on the dev proxy (/api)
 
 let apiBase: string | undefined = undefined;
+
+type ApiEnv = {
+    VITE_API_URL?: string;
+    API_URL?: string;
+};
 
 /**
  * Set the API base URL dynamically (call from your app initialization).
@@ -13,24 +20,16 @@ export function setApiBase(base?: string) {
 
 /** Determine the API base URL by checking multiple locations (manual -> global -> env for SSR). */
 function getEnvApiBase(): string | undefined {
-    const g = globalThis as any;
+    const g = globalThis as { __API_BASE__?: unknown };
 
     // 1) Explicit global variable (can be set from index.html)
     if (typeof g.__API_BASE__ === 'string' && g.__API_BASE__) {
         return g.__API_BASE__;
     }
 
-    // 2) process.env (SSR / Node). In browsers globalThis.process is usually undefined.
-    const proc = g.process as any | undefined;
-    if (proc && proc.env) {
-        if (proc.env.VITE_API_URL) return proc.env.VITE_API_URL;
-        if (proc.env.API_URL) return proc.env.API_URL;
-    }
-
-    // 3) We do not read import.meta.env directly here to stay environment-agnostic.
-    //    If import.meta.env is required, call setApiBase(import.meta.env.VITE_API_URL) at build/runtime.
-
-    return undefined;
+    // 2) process.env (SSR / Node), then import.meta.env (Vite / bundler builds).
+    const envApiBase = getEnvValue<ApiEnv>(["VITE_API_URL", "API_URL"]);
+    return envApiBase === undefined ? undefined : String(envApiBase);
 }
 
 /** Return the current API base URL (manual -> env -> fallback '/'). */

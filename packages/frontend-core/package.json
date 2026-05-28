@@ -1,6 +1,6 @@
 {
     "name": "@websdr/frontend-core",
-    "version": "0.5.3",
+    "version": "0.6.0",
     "description": "This is the core frontend package for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
@@ -37,13 +37,13 @@
         "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
-        "@websdr/core": "^0.5.3",
+        "@websdr/core": "^0.6.0",
         "usb": "^2.17.0"
     },
     "devDependencies": {
         "@types/emscripten": "^1.41.5",
-        "@types/node": "^25.2.3",
-        "@types/w3c-web-usb": "^1.0.13"
+        "@types/node": "^25.6.0",
+        "@types/w3c-web-usb": "^1.0.14"
     },
     "exports": {
         ".": {
@@ -65,6 +65,21 @@
             "types": "./dist/services/index.d.ts",
             "import": "./dist/services/index.js",
             "require": "./dist/services/index.js"
+        },
+        "./telemetry": {
+            "types": "./dist/telemetry/index.d.ts",
+            "import": "./dist/telemetry/index.js",
+            "require": "./dist/telemetry/index.js"
+        },
+        "./transport": {
+            "types": "./dist/transport/index.d.ts",
+            "import": "./dist/transport/index.js",
+            "require": "./dist/transport/index.js"
+        },
+        "./utils": {
+            "types": "./dist/utils/index.d.ts",
+            "import": "./dist/utils/index.js",
+            "require": "./dist/utils/index.js"
         },
         "./webusb": {
             "types": "./dist/webusb/index.d.ts",

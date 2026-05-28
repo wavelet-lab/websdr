@@ -1,14 +1,13 @@
 import { DataType, CHUNK_SIZE } from '@websdr/core/common';
-// import { Buffer } from 'buffer';
 import { base64ToUint8Array, uint8ArrayToBase64 } from '@websdr/core/transform';
 import { sleep } from '@websdr/core/utils';
-import { NngWebSocket, Protocol } from '@/common/nngWebSocket';
+import { NngWebSocket, Protocol } from '@/transport/nngWebSocket';
 import {
     getWebUsbManagerInstance, WebUsbManager, WebUsbManagerMode
 } from './webUsbManager';
 import { WebUsbDirection } from './deviceParameters';
-import { WebUsbEndpoints } from './webUsbBase'
 import type { StreamStatus } from './webUsbBase'
+import { isDebugMode } from '@/common/debug';
 
 const debug_control = false;
 
@@ -29,7 +28,68 @@ interface DeferredParameter {
 export enum WebUsbChannels {
     CHAN1 = 1 << 0,
     CHAN2 = 1 << 1,
-    ALL_CHANS = CHAN1 | CHAN2,
+    CHAN3 = 1 << 2,
+    CHAN4 = 1 << 3,
+    CHAN5 = 1 << 4,
+    CHAN6 = 1 << 5,
+    CHAN7 = 1 << 6,
+    CHAN8 = 1 << 7,
+    ALL_CHANS = CHAN1 | CHAN2 | CHAN3 | CHAN4 | CHAN5 | CHAN6 | CHAN7 | CHAN8,
+}
+
+export enum WebUsbStreamingSync {
+    /* Don't change the current synchronization state */
+    DONT_CHANGE = 0,
+    /* Synchronize streaming to an external 1PPS signal.
+     * Device will attempt to align the start of streaming to the rising edge of the 1PPS signal,
+     * and maintain alignment throughout streaming session.
+     * If synchronization is lost (e.g. due to weak 1PPS signal),
+     * device will attempt to resynchronize on the next 1PPS edge.
+     */
+    PPS1 = 1,
+    /* Synchronize streaming by RX signal */
+    RX = 2,
+    /* Synchronize streaming by TX signal */
+    TX = 3,
+    /* Synchronize streaming by any (1PPS, RX or TX signals) */
+    ANY = 5,
+    /* Streaming without synchronization */
+    NONE = 7,
+}
+
+export enum WebUsbStreamingParamFlag {
+    /* For START_STREAMING: if set, streaming will not start until a separate
+     * START_STREAMING command with this flag cleared is sent
+     */
+    DO_NOT_START = 0x8,
+    /* For START_STREAMING: if set, streaming will restart (stop and start again)
+     * if already started
+     */
+    RESTART = 0x10,
+}
+
+export enum WebUsbStreamingParamSpecial {
+    /* Special streaming parameter value which can be used with CONTROL_STREAMING
+     * command to indicate that the timestamp should not be modified
+     */
+    DONT_TOUCH_TIMESTAMP = 42,
+}
+
+export interface WebUsbStreamingParamOptions {
+    sync?: WebUsbStreamingSync;
+    start?: boolean;
+    restart?: boolean;
+    special?: WebUsbStreamingParamSpecial;
+}
+
+export function buildWebUsbStreamingParam(options: WebUsbStreamingParamOptions = {}): number {
+    if (options.special !== undefined) return options.special;
+
+    let param = options.sync ?? WebUsbStreamingSync.DONT_CHANGE;
+    if (options.start === false) param |= WebUsbStreamingParamFlag.DO_NOT_START;
+    if (options.restart === true) param |= WebUsbStreamingParamFlag.RESTART;
+
+    return param;
 }
 
 export class ControlWebUsb extends EventTarget {
@@ -111,7 +171,6 @@ export class ControlWebUsb extends EventTarget {
                 param: 0,
                 mode: WebUsbDirection.RX_TX,
                 dataformat: DataType.ci16,
-                // stream_type: ControlStreamType.raw, //right now just for behemoth daemon
             },
         },
         STOP_STREAMING: {
@@ -122,7 +181,7 @@ export class ControlWebUsb extends EventTarget {
             req_params: {
                 samplerate: 1e6,
                 throttleon: 10e6,
-                param: 42,
+                param: WebUsbStreamingParamSpecial.DONT_TOUCH_TIMESTAMP,
             },
         },
         GET_SENSOR: {
@@ -188,9 +247,6 @@ export class ControlWebUsb extends EventTarget {
     };
 
     private fd: number = -1;
-    protected control_ep: number;
-    protected control_rep_ep: number;
-    protected notification_ep: number;
     protected type: DataType;
     protected commands: Record<string, any> = {};
     protected parameters: Record<string, any> = {};
@@ -210,14 +266,9 @@ export class ControlWebUsb extends EventTarget {
 
     constructor(params: ControlWebUsbParams = ControlWebUsbInitialParams) {
         super()
-        this.control_ep = params.control_ep !== undefined ? params.control_ep : ControlWebUsbInitialParams.control_ep!;
-        this.control_rep_ep = params.control_rep_ep !== undefined ? params.control_rep_ep : ControlWebUsbInitialParams.control_rep_ep!;
-        this.notification_ep = params.notification_ep !== undefined ? params.notification_ep : ControlWebUsbInitialParams.notification_ep!;
         this.type = params.type !== undefined ? params.type : ControlWebUsbInitialParams.type!;
         this._debugServer = params.debugServer !== undefined ? params.debugServer : ControlWebUsbInitialParams.debugServer!;
         this._mode = params.mode !== undefined ? params.mode : ControlWebUsbInitialParams.mode!;
-        if (this._mode !== WebUsbManagerMode.UNKNOWN)
-            this._webUsbManager = getWebUsbManagerInstance(this._mode);
         this._onControlOpen = this.onControlOpen.bind(this)
         this._onDebugWSMessage = this.onDebugWSMessage.bind(this)
         this._onDebugWSOpen = this.onDebugWSOpen.bind(this)
@@ -229,9 +280,15 @@ export class ControlWebUsb extends EventTarget {
         this._webUsbManager = webUsbManager;
     }
 
+    protected getWebUsbManager(): WebUsbManager | undefined {
+        if (!this._webUsbManager && this._mode !== WebUsbManagerMode.UNKNOWN) {
+            this._webUsbManager = getWebUsbManagerInstance(this._mode);
+        }
+        return this._webUsbManager;
+    }
+
     getRequest(req: Record<string, any>, args = {}, ext_args = {}) {
         let ret = req
-        // ret.id = '12345';
         if (ret.req_params)
             Object.assign(ret.req_params, args)
         Object.assign(ret, ext_args)
@@ -249,7 +306,7 @@ export class ControlWebUsb extends EventTarget {
     }
 
     async setParameter(parm: RequestKeys, args: (() => Record<string, any>) | Record<string, any>, now = false) {
-        if (globalThis.debug_mode || debug_control)
+        if (isDebugMode() || debug_control)
             console.log('ControlWebUsb.setParameter(', parm, ', ', args, '): ')
         if (now) {
             await this.setParameterNow(parm, args);
@@ -283,7 +340,7 @@ export class ControlWebUsb extends EventTarget {
     }
 
     async setSdrParameter(path: string, value: string | bigint | number | undefined): Promise<void> {
-        if (globalThis.debug_mode || debug_control)
+        if (isDebugMode() || debug_control)
             console.log('ControlWebUsb.setSdrParameter(', path, ', ', value, '): ')
         const data = await this.sendCommand('SET_PARAMETER', { path, value });
         if (!data || data.result !== 0) {
@@ -292,7 +349,7 @@ export class ControlWebUsb extends EventTarget {
     }
 
     async getSdrParameter(path: string): Promise<string | bigint | number | undefined> {
-        if (globalThis.debug_mode || debug_control)
+        if (isDebugMode() || debug_control)
             console.log('ControlWebUsb.getSdrParameter(', path, '): ')
         const data = await this.sendCommand('GET_PARAMETER', { path });
         if (data && data.result === 0 && data.details?.path === path) {
@@ -300,11 +357,11 @@ export class ControlWebUsb extends EventTarget {
         } else {
             throw new Error(`ControlWebUsb.getSdrParameter: Error getting parameter ${path}`);
         }
-        // return undefined; //???
     }
 
     async sendRawCommand(req: Record<string, any>): Promise<Record<string, any>> {
-        return this._webUsbManager ? await this._webUsbManager.sendCommand(this.fd, req) : {};
+        const webUsbManager = this.getWebUsbManager();
+        return webUsbManager ? await webUsbManager.sendCommand(this.fd, req) : {};
     }
 
     async sendCommand(cmd: RequestKeys, args = {}, ext_args = {}) {
@@ -331,13 +388,13 @@ export class ControlWebUsb extends EventTarget {
             }
             const req = this.getRequest(ControlWebUsb.Requests[cmd], args, ext_args);
             // console.log('REQUEST', req);
-            if (globalThis.debug_mode || debug_control) {
+            if (isDebugMode() || debug_control) {
                 this._start_ms = Date.now();
                 console.log('1. ControlWebUsb.sendCommand(', cmd, ', ', args, ', ', ext_args, '): req =', req);
             }
             const data = await this.sendRawCommand(req);
             // console.log('DATA', data);
-            if (globalThis.debug_mode || debug_control) {
+            if (isDebugMode() || debug_control) {
                 this._end_ms = Date.now();
                 console.log('2. ControlWebUsb.sendCommand(', cmd, ', ', args, ', ', ext_args, '): data =', data, 'duration', this._end_ms - this._start_ms);
             }
@@ -521,20 +578,23 @@ export class ControlWebUsb extends EventTarget {
     }
 
     async getStreamStatus(): Promise<StreamStatus> {
-        if (this.fd < 0 || !this._webUsbManager) return 'INVALID'
-        return await this._webUsbManager.getStreamStatus(this.fd);
+        const webUsbManager = this.getWebUsbManager();
+        if (this.fd < 0 || !webUsbManager) return 'INVALID'
+        return await webUsbManager.getStreamStatus(this.fd);
     }
 
     async setStreamStatus(status: StreamStatus) {
-        if (this.fd < 0 || !this._webUsbManager) return;
-        await this._webUsbManager.setStreamStatus(this.fd, status);
+        const webUsbManager = this.getWebUsbManager();
+        if (this.fd < 0 || !webUsbManager) return;
+        await webUsbManager.setStreamStatus(this.fd, status);
     }
 
     async onDebugWSMessage(event: Event) {
-        if (this._webUsbManager) {
+        const webUsbManager = this.getWebUsbManager();
+        if (webUsbManager) {
             const data = (event as MessageEvent).data;
             console.warn('Received debug command:', data);
-            const res = await this._webUsbManager.sendDebugCommand(this.fd, data);
+            const res = await webUsbManager.sendDebugCommand(this.fd, data);
             console.warn('Reply to debug command:', res);
             await this._debugWS?.send(res);
         }
@@ -556,18 +616,12 @@ export class ControlWebUsb extends EventTarget {
 }
 
 export interface ControlWebUsbParams {
-    control_ep?: number,
-    control_rep_ep?: number,
-    notification_ep?: number,
     type?: DataType,
     debugServer?: string,
     mode?: WebUsbManagerMode;
 }
 
 export const ControlWebUsbInitialParams: ControlWebUsbParams = {
-    control_ep: WebUsbEndpoints.CONTROL_EP,
-    control_rep_ep: WebUsbEndpoints.CONTROL_EP,
-    notification_ep: WebUsbEndpoints.NOTIFY_EP,
     type: DataType.cf32,
     debugServer: '',
     mode: WebUsbManagerMode.WORKER,

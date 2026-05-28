@@ -3,7 +3,7 @@
 Frontend-focused TypeScript core for the WebSDR ecosystem.
 
 This package provides:
-- Small **frontend common** helpers (debug flag, NNG-over-WebSocket client, WASM errno enum).
+- Small **frontend common** helpers (debug flag, env helpers, WASM errno enum).
 - Minimal **HTTP API helpers** for browser apps.
 - A **WebUSB control + streaming layer** used by WebSDR-compatible devices.
 
@@ -34,7 +34,8 @@ import { apiFetch, setApiBase, ensureWebUsb } from '@websdr/frontend-core';
 Or use subpath exports:
 
 ```ts
-import { debug_mode, NngWebSocket, Protocol } from '@websdr/frontend-core/common';
+import { configureDebug, debug_mode, getEnvValue } from '@websdr/frontend-core/common';
+import { NngWebSocket, Protocol } from '@websdr/frontend-core/transport';
 import { apiFetch, setApiBase } from '@websdr/frontend-core/services';
 import { ensureWebUsb, WebUsbManagerMode, getWebUsbManagerInstance } from '@websdr/frontend-core/webusb';
 ```
@@ -53,6 +54,8 @@ setApiBase('http://localhost:3000');
 type Profile = { id: string; username: string };
 const profile = await apiFetch<Profile>('/api/auth/profile');
 ```
+
+If `setApiBase()` is not called, the helper tries `globalThis.__API_BASE__`, then `process.env.VITE_API_URL` / `process.env.API_URL`, then `import.meta.env.VITE_API_URL` / `import.meta.env.API_URL`, and finally falls back to `/`.
 
 You can also set the API base via a global variable (useful for `index.html` deployments):
 
@@ -77,10 +80,29 @@ try {
 }
 ```
 
+### Debug and env helpers
+
+`debug_mode` is initialized from `process.env.VITE_DEBUG` / `process.env.DEBUG`, then `import.meta.env.VITE_DEBUG` / `import.meta.env.DEBUG`. You can also configure it explicitly:
+
+```ts
+import { configureDebug, isDebugMode } from '@websdr/frontend-core/common';
+
+configureDebug({ debug: import.meta.env.DEV });
+console.log(isDebugMode());
+```
+
+Common env access is available through `getEnvValue()`, which checks `process.env` before `import.meta.env` by default:
+
+```ts
+import { getEnvValue } from '@websdr/frontend-core/common';
+
+const apiUrl = getEnvValue(['VITE_API_URL', 'API_URL']);
+```
+
 ### NNG-over-WebSocket (REQ/SUB)
 
 ```ts
-import { NngWebSocket, Protocol } from '@websdr/frontend-core/common';
+import { NngWebSocket, Protocol } from '@websdr/frontend-core/transport';
 
 const ws = new NngWebSocket({
   url: 'ws://localhost:8000/ws',
@@ -96,7 +118,7 @@ ws.addEventListener('message', (ev) => {
 REQ example (request/response). The `send()` promise resolves when a reply with the same request id arrives:
 
 ```ts
-import { NngWebSocket, Protocol } from '@websdr/frontend-core/common';
+import { NngWebSocket, Protocol } from '@websdr/frontend-core/transport';
 
 const ws = new NngWebSocket({
   url: 'ws://localhost:8000/rpc',
@@ -219,7 +241,6 @@ const samples = await mgr.getRXSamplesCount(fd, cfg.defaultSamplesCount);
 
 const rx = await mgr.submitRxPacket(fd, samples, {
   datatype: DataType.ci16,
-  extra_meta: true,
   id: 1,
 });
 
@@ -324,12 +345,16 @@ export default defineConfig({
 ## Public API (summary)
 
 - **`@websdr/frontend-core/common`**:
-  - `debug_mode`
-  - `Protocol`, `NngWebSocket`
+  - `debug_mode`, `setDebugMode`, `configureDebug`, `isDebugMode`, `assert`
+  - `getImportMetaEnv`, `getProcessEnv`, `getEnv`, `getEnvValue`
   - `WASMErrno`
 - **`@websdr/frontend-core/services`**:
   - `setApiBase`, `getApiBase`, `apiUrl`, `apiFetch`
   - `login`, `logout`, `getProfile`
+- **`@websdr/frontend-core/transport`**:
+  - `Protocol`, `NngWebSocket`
+- **`@websdr/frontend-core/utils`**:
+  - `downloadFile`
 - **`@websdr/frontend-core/webusb`** (high level):
   - `ensureWebUsb`
   - `ControlWebUsb`, `WebUsbChannels`, `ControlWebUsbInitialParams`
@@ -372,6 +397,8 @@ This package publishes `dist/` to npm. Source is available in the GitHub reposit
 - Entry point: https://github.com/wavelet-lab/websdr/blob/main/packages/frontend-core/src/index.ts
 - Common exports: https://github.com/wavelet-lab/websdr/blob/main/packages/frontend-core/src/common/index.ts
 - Services exports: https://github.com/wavelet-lab/websdr/blob/main/packages/frontend-core/src/services/index.ts
+- Transport exports: https://github.com/wavelet-lab/websdr/blob/main/packages/frontend-core/src/transport/index.ts
+- Utils exports: https://github.com/wavelet-lab/websdr/blob/main/packages/frontend-core/src/utils/index.ts
 - WebUSB exports: https://github.com/wavelet-lab/websdr/blob/main/packages/frontend-core/src/webusb/index.ts
 
 Package folder (GitHub):
