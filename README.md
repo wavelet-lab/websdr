@@ -2,8 +2,6 @@
 
 [WebSDR](https://github.com/wavelet-lab/websdr) is an open-source TypeScript monorepo that provides libraries and tools for building web applications that work with Software Defined Radios (SDR) using WebUSB and related browser/node tooling.
 
-⚠️ This project is under active development. Some features are experimental and APIs may change.
-
 ## Supported SDR hardware
 
 Currently supported SDR devices:
