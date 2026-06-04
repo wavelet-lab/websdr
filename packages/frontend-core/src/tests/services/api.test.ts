@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { apiFetch, setApiBase } from '@/services/api';
+import { apiFetch, apiWsUrl, setApiBase } from '@/services/api';
 
 describe('apiFetch', () => {
     let originalFetch: typeof fetch | undefined;
@@ -100,6 +100,49 @@ describe('apiFetch', () => {
     });
 
 });
+
+describe('apiWsUrl', () => {
+    let originalLocation: Location | undefined;
+
+    beforeEach(() => {
+        originalLocation = globalThis.location;
+        setApiBase(undefined);
+    });
+
+    afterEach(() => {
+        if (originalLocation === undefined) {
+            delete (globalThis as { location?: Location }).location;
+        } else {
+            Object.defineProperty(globalThis, 'location', {
+                value: originalLocation,
+                configurable: true,
+            });
+        }
+        setApiBase(undefined);
+    });
+
+    it('builds a websocket URL from an absolute HTTPS API base', () => {
+        setApiBase('https://api.example.com');
+
+        expect(apiWsUrl('/rpc')).toBe('wss://api.example.com/rpc');
+    });
+
+    it('overrides the websocket URL port when provided', () => {
+        setApiBase('https://api.example.com');
+
+        expect(apiWsUrl('/rpc', 8080)).toBe('wss://api.example.com:8080/rpc');
+    });
+
+    it('builds a websocket URL from the current origin when API base falls back to "/"', () => {
+        Object.defineProperty(globalThis, 'location', {
+            value: new URL('https://app.example.com/current/page'),
+            configurable: true,
+        });
+
+        expect(apiWsUrl('/rpc')).toBe('wss://app.example.com/rpc');
+    });
+});
+
 // Tests for getEnvApiBase (indirectly via the public getApiBase)
 describe('getEnvApiBase via getApiBase', () => {
     let originalApiBaseGlobal: any;

@@ -1,6 +1,6 @@
 {
     "name": "@websdr/nestjs-microservice",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "description": "This is a NestJS microservice for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
@@ -33,7 +33,7 @@
         "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
-        "@websdr/core": "^0.6.0",
+        "@websdr/core": "^0.6.1",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.15.1",
         "passport-jwt": "^4.0.1",

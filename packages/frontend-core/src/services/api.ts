@@ -47,6 +47,31 @@ export function apiUrl(path = ''): string {
     return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
 }
 
+export function apiWsUrl(path = '', port?: number): string {
+    const httpUrl = apiUrl(path);
+    const baseUrl = typeof globalThis.location === 'object'
+        ? globalThis.location.href
+        : undefined;
+
+    if (!baseUrl && httpUrl.startsWith('/')) {
+        throw new Error('Cannot build a WebSocket API URL from a relative API base without globalThis.location');
+    }
+
+    const url = new URL(httpUrl, baseUrl);
+
+    if (url.protocol === 'https:') {
+        url.protocol = 'wss:';
+    } else if (url.protocol === 'http:') {
+        url.protocol = 'ws:';
+    }
+
+    if (port !== undefined) {
+        url.port = String(port);
+    }
+
+    return url.toString();
+}
+
 export async function apiFetch<T = any>(path: string, init?: RequestInit): Promise<T> {
     const url = apiUrl(path);
     const res = await fetch(url, { ...init, credentials: 'include' });
@@ -77,5 +102,6 @@ export default {
     setApiBase,
     getApiBase,
     apiUrl,
+    apiWsUrl,
     apiFetch,
 };

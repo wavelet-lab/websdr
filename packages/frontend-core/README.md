@@ -57,6 +57,14 @@ const profile = await apiFetch<Profile>('/api/auth/profile');
 
 If `setApiBase()` is not called, the helper tries `globalThis.__API_BASE__`, then `process.env.VITE_API_URL` / `process.env.API_URL`, then `import.meta.env.VITE_API_URL` / `import.meta.env.API_URL`, and finally falls back to `/`.
 
+For WebSocket endpoints that share the same API base, use `apiWsUrl()`. It resolves the `/` fallback against `globalThis.location` and converts `http:` / `https:` to `ws:` / `wss:`.
+
+```ts
+import { apiWsUrl } from '@websdr/frontend-core/services';
+
+const rpcUrl = apiWsUrl('/rpc');
+```
+
 You can also set the API base via a global variable (useful for `index.html` deployments):
 
 ```ts
