@@ -97,6 +97,7 @@ export class WebUsbSourceSink extends WebUsbDeviceControlBase {
     }
 
     close() {
+        this.stopStream();
         void this.closeDevice();
         this._streamMeterData?.down();
     }
