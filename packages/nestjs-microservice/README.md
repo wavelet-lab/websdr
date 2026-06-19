@@ -6,7 +6,7 @@ This package is published as an npm module and is intended to be **embedded into
 
 ## What’s inside
 
-- **Auth** (`/auth`): `AuthModule`, `AuthService`, `JwtAuthGuard`, DTOs and interfaces.
+- **Auth** (`/api/auth`): `AuthModule`, `AuthService`, `JwtAuthGuard`, DTOs and interfaces.
 - **Users** (`/users`): `UsersModule` and `UsersService`.
 - **Common** (`/common`): a small logging helper module (`LoggingModule`, `createContextLogger`) and `LoggerLevelService`/`parseLogLevels`.
 
@@ -152,6 +152,19 @@ const app = await NestFactory.create(AppModule);
 app.get(LoggerLevelService).setLevelsFromString(process.env.LOG_LEVELS);
 await app.listen(3000);
 ```
+
+## Authentication configuration
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `JWT_SECRET` | `just_a_demo_secret_key_you_should_change_me` | JWT signing and verification key |
+| `JWT_ALGORITHM` | `HS256` | Signing algorithm and verification allowlist |
+| `JWT_EXPIRES_IN` | `1h` | Access-token lifetime |
+| `NODE_ENV` | unset | Enables secure auth cookies when set to `production` |
+
+`JWT_ALGORITHM` accepts signed algorithms supported by `jsonwebtoken`.
+Unsupported values, including `none`, cause configuration to fail. An
+asymmetric algorithm requires a compatible key in `JWT_SECRET`.
 
 ## Public API (summary)
 

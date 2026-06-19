@@ -8,6 +8,7 @@ import { AuthService } from '@/auth/auth.service';
 import { AuthController } from '@/auth/auth.controller';
 import { UsersModule } from '@/users/users.module';
 import { JwtConfigModule, JWT_CONFIG } from '@/auth/jwt-config.module';
+import type { JwtConfig } from '@/auth/jwt-config.module';
 
 @Module({
     imports: [
@@ -18,7 +19,7 @@ import { JwtConfigModule, JWT_CONFIG } from '@/auth/jwt-config.module';
         JwtModule.registerAsync({
             imports: [JwtConfigModule],
             inject: [JWT_CONFIG],
-            useFactory: (jwtConfig: { secret: string; signOptions?: any }) => jwtConfig,
+            useFactory: (jwtConfig: JwtConfig) => jwtConfig,
         }),
     ],
     controllers: [AuthController],
