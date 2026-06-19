@@ -37,8 +37,8 @@
         "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
-        "@websdr/core": "^0.6.1",
-        "@websdr/frontend-core": "^0.6.1"
+        "@websdr/core": "^0.6.2",
+        "@websdr/frontend-core": "^0.6.2"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^6.0.7",
