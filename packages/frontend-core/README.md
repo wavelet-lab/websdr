@@ -51,8 +51,17 @@ import { setApiBase, apiFetch } from '@websdr/frontend-core/services';
 
 setApiBase('http://localhost:3000');
 
-type Profile = { id: string; username: string };
-const profile = await apiFetch<Profile>('/api/auth/profile');
+type ProfileResponse = {
+  ok: boolean;
+  message: string;
+  user: {
+    sub: string | number;
+    username: string;
+    name?: string;
+  };
+};
+
+const { user } = await apiFetch<ProfileResponse>('/api/auth/profile');
 ```
 
 If `setApiBase()` is not called, the helper tries `globalThis.__API_BASE__`, then `process.env.VITE_API_URL` / `process.env.API_URL`, then `import.meta.env.VITE_API_URL` / `import.meta.env.API_URL`, and finally falls back to `/`.
@@ -168,7 +177,7 @@ await mgr.close(fd);
 
 ### WebUSB: control + streaming via `ControlWebUsb`
 
-`ControlWebUsb` is a high-level helper built on top of `WebUsbManager`. It prepares structured control commands (connect/discover/params/stream control).
+`ControlWebUsb` is a high-level helper built on top of `WebUsbManager`. It prepares structured device parameter and streaming commands.
 
 ```ts
 import { CHUNK_SIZE, DataType } from '@websdr/core/common';
@@ -195,9 +204,6 @@ if (fd < 0) throw new Error('Failed to open device');
 const control = new ControlWebUsb({ mode });
 await control.open(fd);
 
-await control.sendCommand('CONNECT');
-const discovered = await control.sendCommand('DISCOVER');
-console.log('discover:', discovered);
 const info = await control.getDeviceInfo(false);
 console.log('device:', info);
 
@@ -216,7 +222,6 @@ await control.sendCommand('START_STREAMING', {
 console.log('stream status:', await control.getStreamStatus());
 
 await control.sendCommand('STOP_STREAMING');
-await control.sendCommand('DISCONNECT');
 
 await control.close();
 await mgr.close(fd);
@@ -357,7 +362,7 @@ export default defineConfig({
   - `getImportMetaEnv`, `getProcessEnv`, `getEnv`, `getEnvValue`
   - `WASMErrno`
 - **`@websdr/frontend-core/services`**:
-  - `setApiBase`, `getApiBase`, `apiUrl`, `apiFetch`
+  - `setApiBase`, `getApiBase`, `apiUrl`, `apiWsUrl`, `apiFetch`
   - `login`, `logout`, `getProfile`
 - **`@websdr/frontend-core/transport`**:
   - `Protocol`, `NngWebSocket`

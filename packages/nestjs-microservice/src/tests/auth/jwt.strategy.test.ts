@@ -14,7 +14,11 @@ describe('JwtStrategy', () => {
                 JwtStrategy,
                 {
                     provide: JWT_CONFIG,
-                    useValue: { secret: 'test_secret', signOptions: { expiresIn: '1h' } },
+                    useValue: {
+                        secret: 'test_secret',
+                        signOptions: { algorithm: 'HS512', expiresIn: '1h' },
+                        verifyOptions: { algorithms: ['HS512'] },
+                    },
                 },
                 {
                     provide: AuthService,
@@ -30,5 +34,9 @@ describe('JwtStrategy', () => {
         const payload = { sub: '123', username: 'user', foo: 'bar' };
         const result = await strategy.validate(payload);
         expect(result).toMatchObject({ sub: '123', username: 'user' });
+    });
+
+    it('restricts verification to the configured algorithm', () => {
+        expect((strategy as any)._verifOpts.algorithms).toEqual(['HS512']);
     });
 });

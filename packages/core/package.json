@@ -1,6 +1,6 @@
 {
     "name": "@websdr/core",
-    "version": "0.6.1",
+    "version": "0.6.2",
     "description": "This is the core package for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
@@ -33,7 +33,7 @@
     },
     "devDependencies": {
         "@types/emscripten": "^1.41.5",
-        "@types/node": "^25.9.1"
+        "@types/node": "^26.0.0"
     },
     "exports": {
         ".": {

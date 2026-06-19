@@ -47,7 +47,7 @@ Brief package descriptions:
 - `packages/core` — Core shared library with domain types, utilities, constants and radio-related helpers.
 - `packages/frontend-core` — Front-end core utilities, WebUSB adapters, and services used by client apps.
 - `packages/vue3-components` — Vue 3 component library (examples: `SdrInput`, `Dropdown`, `List`, `LogArea`). Built with Vite; ships TypeScript types and styles.
-- `packages/nestjs-microservice` — NestJS integration and helper modules; main entry is `WebSDRModule` (configurable via environment variables such as `WEBSDR_*`).
+- `packages/nestjs-microservice` — Reusable NestJS modules for authentication, users, and logging.
 - `test-apps` — Small scripts and demo pages used to test low-level functionality (e.g., `usb-test.ts`).
 
 ## Published npm packages
@@ -125,7 +125,7 @@ Manual test notes and troubleshooting: [test-apps/README.md](test-apps/README.md
 | Variable | Required | Default | Used for |
 | --- | --- | --- | --- |
 | `JWT_SECRET` | Recommended | `just_a_demo_secret_key_you_should_change_me` | JWT signing secret. Set a strong value outside development. |
-| `JWT_ALGORITHM` | No | `HS256` | JWT signing algorithm. |
+| `JWT_ALGORITHM` | No | `HS256` | JWT signing algorithm and verification allowlist. |
 | `JWT_EXPIRES_IN` | No | `1h` | Default access-token lifetime. |
 | `LOG_LEVELS` | No | NestJS default | Optional comma-separated NestJS log levels, or `all`/`on`/`off`, when wired through the logging helpers. |
 | `NODE_ENV` | No | unset | When set to `production`, auth cookies are marked `secure`. |

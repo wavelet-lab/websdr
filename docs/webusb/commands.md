@@ -36,8 +36,7 @@ Description of common parameters:
 - `param`: implementation-specific bitfield used by streaming/control calls (see `sdr_init_streaming` / `sdr_ctrl_streaming` / `sdr_calibrate` sections for details).
 - `mode`: stream mode — `1` = RX, `2` = TX, `3` = RX+TX.
 - `dataformat`: data format string. Can be a single format (e.g., `ci16`, `cf32`) or `HOST@WIRE` form (e.g., `cf32@ci12`) meaning the device uses `ci12` on its wire/internal interface while presenting `cf32` to the host.
-- `frequency`: frequency in Hz (integer).
-- `bandwidth`: bandwidth in Hz (integer).
+- `frequency`: frequency in Hz, or bandwidth in Hz for the RX/TX bandwidth commands (integer).
 - `gain`: gain value (units/device-specific).
 - `path`: hierarchical device parameter path (for `sdr_set_parameter` / `sdr_get_parameter`).
 - `offset`, `length`, `checksum`: flash operation parameters (byte offsets, lengths, and checksum values). `req_data` carries base64-encoded bytes for write operations.
@@ -163,7 +162,7 @@ Input example:
 	"req_method": "sdr_set_rx_bandwidth",
 	"req_params": {
 		"chans": 1,
-		"bandwidth": 1000000
+		"frequency": 1000000
 	}
 }
 ```
@@ -280,7 +279,7 @@ Input example:
 	"req_method": "sdr_set_tx_bandwidth",
 	"req_params": {
 		"chans": 1,
-		"bandwidth": 1000000
+		"frequency": 1000000
 	}
 }
 ```
@@ -733,4 +732,3 @@ Expected response:
 - Implementations may provide additional fields in `details` specific to the driver.
 - On error, `result` will be non-zero and `error` may contain a message.
 - For streaming commands, most payloads are delivered asynchronously over the streaming endpoint; control replies only indicate command acceptance/state.
-

@@ -1,21 +1,22 @@
 import { apiUrl, apiFetch } from "./api";
 
-export async function login(credentials?: { username: string; password: string }) {
-    let res;
-    if (credentials) {
-        // Regular login
-        res = await apiFetch("/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...credentials })
-        });
-    } else {
-        // Guest login
-        res = await apiFetch("/api/auth/guest", { method: "POST" });
-    }
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
 
-    if (!res.ok) {
-        throw new Error(`Login failed: ${res.status}`);
+export async function login(credentials?: { username: string; password: string }) {
+    try {
+        if (credentials) {
+            await apiFetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...credentials })
+            });
+        } else {
+            await apiFetch("/api/auth/guest", { method: "POST" });
+        }
+    } catch (error) {
+        throw new Error(`Login failed: ${getErrorMessage(error)}`, { cause: error });
     }
 }
 
@@ -31,15 +32,12 @@ export async function logout() {
 }
 
 export async function getProfile() {
-    const res = await apiFetch("/api/auth/profile");
-
-    if (!res.ok) {
-        throw new Error(`Failed to fetch profile: ${res.status}`);
+    try {
+        const { user } = await apiFetch<{ user: unknown }>("/api/auth/profile");
+        return user;
+    } catch (error) {
+        throw new Error(`Failed to fetch profile: ${getErrorMessage(error)}`, { cause: error });
     }
-
-    const { ok, message, user } = res;
-
-    return user;
 }
 
 export default {

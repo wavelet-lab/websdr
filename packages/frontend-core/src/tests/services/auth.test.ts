@@ -15,7 +15,11 @@ describe("login", () => {
     });
 
     it("performs regular login with credentials", async () => {
-        vi.mocked(apiFetch).mockResolvedValueOnce({ ok: true, status: 200 } as any);
+        vi.mocked(apiFetch).mockResolvedValueOnce({
+            ok: true,
+            message: "User authenticated",
+            user_id: 1,
+        });
 
         const credentials = { username: "user", password: "pass" };
         await expect(login(credentials)).resolves.toBeUndefined();
@@ -29,7 +33,11 @@ describe("login", () => {
     });
 
     it("performs guest login when no credentials are provided", async () => {
-        vi.mocked(apiFetch).mockResolvedValueOnce({ ok: true, status: 200 } as any);
+        vi.mocked(apiFetch).mockResolvedValueOnce({
+            ok: true,
+            message: "Guest authenticated",
+            user_id: "guest-1",
+        });
 
         await expect(login()).resolves.toBeUndefined();
 
@@ -37,40 +45,46 @@ describe("login", () => {
         expect(apiFetch).toHaveBeenCalledWith("/api/auth/guest", { method: "POST" });
     });
 
-    it("throws an error when regular login fails", async () => {
-        vi.mocked(apiFetch).mockResolvedValueOnce({ ok: false, status: 401 } as any);
+    it("wraps API errors when regular login fails", async () => {
+        const cause = new Error("API error 401", {
+            cause: { statusCode: 401, message: "Invalid credentials" },
+        });
+        vi.mocked(apiFetch).mockRejectedValueOnce(cause);
 
-        await expect(login({ username: "bad", password: "creds" })).rejects.toThrow(
-            "Login failed: 401"
-        );
+        await expect(login({ username: "bad", password: "creds" })).rejects.toMatchObject({
+            message: "Login failed: API error 401",
+            cause,
+        });
 
         expect(apiFetch).toHaveBeenCalledWith("/api/auth/login", expect.any(Object));
     });
 
-    it("throws an error when guest login fails", async () => {
-        vi.mocked(apiFetch).mockResolvedValueOnce({ ok: false, status: 500 } as any);
+    it("wraps API errors when guest login fails", async () => {
+        vi.mocked(apiFetch).mockRejectedValueOnce(new Error("API error 500"));
 
-        await expect(login()).rejects.toThrow("Login failed: 500");
+        await expect(login()).rejects.toThrow("Login failed: API error 500");
 
         expect(apiFetch).toHaveBeenCalledWith("/api/auth/guest", { method: "POST" });
     });
 
-    it("propagates network errors for regular login", async () => {
+    it("wraps network errors for regular login", async () => {
         const err = new Error("Network down");
         vi.mocked(apiFetch).mockRejectedValueOnce(err);
 
-        await expect(login({ username: "user", password: "pass" })).rejects.toThrow("Network down");
+        await expect(login({ username: "user", password: "pass" })).rejects.toThrow(
+            "Login failed: Network down"
+        );
         expect(apiFetch).toHaveBeenCalledWith("/api/auth/login", expect.any(Object));
     });
 
-    it("propagates network errors for guest login", async () => {
+    it("wraps network errors for guest login", async () => {
         const err = new Error("Fetch failed");
         vi.mocked(apiFetch).mockRejectedValueOnce(err);
 
-        await expect(login()).rejects.toThrow("Fetch failed");
+        await expect(login()).rejects.toThrow("Login failed: Fetch failed");
         expect(apiFetch).toHaveBeenCalledWith("/api/auth/guest", { method: "POST" });
     });
-})
+});
 // Tests for logout and getProfile
 describe("logout", () => {
     let originalSendBeacon: any;
@@ -133,9 +147,9 @@ describe("getProfile", () => {
         const user = { id: "u1", name: "Alice" };
         vi.mocked(apiFetch).mockResolvedValueOnce({
             ok: true,
-            status: 200,
+            message: "",
             user,
-        } as any);
+        });
 
         const { getProfile } = await import("@/services/auth");
         await expect(getProfile()).resolves.toEqual(user);
@@ -143,23 +157,24 @@ describe("getProfile", () => {
         expect(apiFetch).toHaveBeenCalledWith("/api/auth/profile");
     });
 
-    it("throws an error when response is not ok", async () => {
-        vi.mocked(apiFetch).mockResolvedValueOnce({
-            ok: false,
-            status: 403,
-        } as any);
+    it("wraps API errors", async () => {
+        vi.mocked(apiFetch).mockRejectedValueOnce(new Error("API error 403"));
 
         const { getProfile } = await import("@/services/auth");
-        await expect(getProfile()).rejects.toThrow("Failed to fetch profile: 403");
+        await expect(getProfile()).rejects.toThrow(
+            "Failed to fetch profile: API error 403"
+        );
 
         expect(apiFetch).toHaveBeenCalledWith("/api/auth/profile");
     });
 
-    it("propagates network errors", async () => {
+    it("wraps network errors", async () => {
         const err = new Error("Network issue");
         vi.mocked(apiFetch).mockRejectedValueOnce(err);
 
         const { getProfile } = await import("@/services/auth");
-        await expect(getProfile()).rejects.toThrow("Network issue");
+        await expect(getProfile()).rejects.toThrow(
+            "Failed to fetch profile: Network issue"
+        );
     });
 });

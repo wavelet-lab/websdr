@@ -6,6 +6,12 @@ Documentation is organized by topic. Currently, the primary documentation set is
 
 ---
 
+## API Reference
+
+- [api.md](api.md) - HTTP, WebSocket, WebUSB, and npm API reference
+
+---
+
 ## WebUSB / SDR Interaction Subsystem
 
 Start here: [webusb/README.md](webusb/README.md)
