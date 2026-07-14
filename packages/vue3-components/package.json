@@ -1,6 +1,6 @@
 {
     "name": "@websdr/vue3-components",
-    "version": "0.6.3",
+    "version": "0.6.4",
     "description": "This is a Vue 3 components package for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
@@ -37,11 +37,11 @@
         "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
-        "@websdr/core": "^0.6.3",
-        "@websdr/frontend-core": "^0.6.3"
+        "@websdr/core": "^0.6.4",
+        "@websdr/frontend-core": "^0.6.4"
     },
     "devDependencies": {
-        "@vitejs/plugin-vue": "^6.0.7",
+        "@vitejs/plugin-vue": "^6.0.8",
         "@vue/cli-plugin-typescript": "^5.0.9",
         "@vue/cli-service": "^5.0.9",
         "@vue/test-utils": "^2.4.11",

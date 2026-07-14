@@ -1,6 +1,6 @@
 {
     "name": "@websdr/frontend-core",
-    "version": "0.6.3",
+    "version": "0.6.4",
     "description": "This is the core frontend package for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
@@ -37,7 +37,7 @@
         "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
-        "@websdr/core": "^0.6.3",
+        "@websdr/core": "^0.6.4",
         "usb": "^3.0.1"
     },
     "devDependencies": {
