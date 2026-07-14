@@ -29,6 +29,7 @@ const logclass = computed((): string => {
 });
 
 const formattedTime = computed(() => timestampToTimeString(props.modelValue.timestamp))
+const levelText = computed(() => props.modelValue.logLevel ?? JournalLogLevel.DEBUG)
 
 </script>
 
@@ -36,9 +37,10 @@ const formattedTime = computed(() => timestampToTimeString(props.modelValue.time
 <template>
     <div class="log-area-item">
         <p :class="logclass">
-            {{ formattedTime }}
-            <b>{{ props.modelValue.subSystem }}:</b>
-            {{ props.modelValue.message }}
+            <span class="log-area-item__time">{{ formattedTime }}</span>
+            <span class="log-area-item__level">[{{ levelText }}]</span>
+            <b class="log-area-item__subsystem">{{ props.modelValue.subSystem }}:</b>
+            <span class="log-area-item__message">{{ props.modelValue.message }}</span>
         </p>
     </div>
 </template>

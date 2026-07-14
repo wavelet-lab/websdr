@@ -97,6 +97,28 @@ describe('Dropdown.vue', () => {
             await nextTick();
             expect(findInBody('.custom-no-results')).not.toBeNull();
         });
+
+        it('shows a clear button for the search input', async () => {
+            wrapper = mount(Dropdown, {
+                props: { options, searchable: true }
+            });
+            await wrapper.find('.dropdown-trigger').trigger('click');
+            await nextTick();
+
+            const input = findInBody('.dropdown-search-input') as HTMLInputElement;
+            expect(input).not.toBeNull();
+            input.value = 'B';
+            input.dispatchEvent(new Event('input'));
+            await nextTick();
+
+            const clearButton = findInBody('.dropdown-search-clear') as HTMLButtonElement;
+            expect(clearButton).not.toBeNull();
+            clearButton.click();
+            await nextTick();
+
+            expect(input.value).toBe('');
+            expect(document.activeElement).toBe(input);
+        });
     });
 
     describe('Clearable Dropdown', () => {
@@ -208,6 +230,115 @@ describe('Dropdown.vue', () => {
             await wrapper.find('.dropdown-trigger').trigger('keydown', { key: 'Enter' });
             await nextTick();
             expect(wrapper.emitted().open).toBeTruthy();
+        });
+
+        it('does not open closed dropdowns from a global Enter key', async () => {
+            wrapper = mount({
+                components: { Dropdown },
+                data: () => ({ options }),
+                template: `
+                    <div>
+                        <Dropdown class="first-dropdown" :options="options" />
+                        <Dropdown class="second-dropdown" :options="options" />
+                    </div>
+                `,
+            });
+
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            await nextTick();
+            expect(document.body.querySelectorAll('.dropdown-panel')).toHaveLength(0);
+
+            await wrapper.find('.first-dropdown .dropdown-trigger').trigger('keydown', { key: 'Enter' });
+            await nextTick();
+            expect(document.body.querySelectorAll('.dropdown-panel')).toHaveLength(1);
+        });
+
+        it('uses arrow keys to move through generated options', async () => {
+            wrapper = mount(Dropdown, { props: { options } });
+            await wrapper.find('.dropdown-trigger').trigger('keydown', { key: 'Enter' });
+            await nextTick();
+
+            const panel = findInBody('.dropdown-panel');
+            expect(panel).not.toBeNull();
+            expect(panel!.querySelector('.dropdown-option--active')?.textContent).toContain('Option A');
+
+            panel!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+            await nextTick();
+            expect(panel!.querySelector('.dropdown-option--active')?.textContent).toContain('Option B');
+        });
+
+        it('closes generated options on Tab instead of tabbing through the list', async () => {
+            const host = document.createElement('div');
+            document.body.appendChild(host);
+
+            wrapper = mount({
+                components: { Dropdown },
+                data: () => ({ options }),
+                template: `
+                    <div>
+                        <Dropdown :options="options" />
+                        <button class="after-dropdown">After</button>
+                    </div>
+                `,
+                attachTo: host,
+            });
+
+            await wrapper.find('.dropdown-trigger').trigger('keydown', { key: 'Enter' });
+            await nextTick();
+
+            const panel = findInBody('.dropdown-panel');
+            expect(panel).not.toBeNull();
+            panel!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+            await Promise.resolve();
+            await nextTick();
+
+            expect(findInBody('.dropdown-panel')).toBeNull();
+        });
+
+        it('returns focus to search input on Tab from generated searchable options', async () => {
+            wrapper = mount(Dropdown, { props: { options, searchable: true } });
+            await wrapper.find('.dropdown-trigger').trigger('keydown', { key: 'Enter' });
+            await nextTick();
+
+            const panel = findInBody('.dropdown-panel');
+            const searchInput = findInBody('.dropdown-search-input') as HTMLInputElement;
+            expect(panel).not.toBeNull();
+            expect(searchInput).not.toBeNull();
+
+            panel!.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+            await nextTick();
+            expect(panel!.querySelector('.dropdown-option--active')?.textContent).toContain('Option B');
+
+            panel!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+            await nextTick();
+
+            expect(findInBody('.dropdown-panel')).not.toBeNull();
+            expect(document.activeElement).toBe(searchInput);
+        });
+
+        it('closes custom content when Tab leaves its last focusable element', async () => {
+            wrapper = mount(Dropdown, {
+                slots: {
+                    content: `
+                        <input class="custom-first" />
+                        <button class="custom-last">Done</button>
+                    `,
+                },
+            });
+
+            await wrapper.find('.dropdown-trigger').trigger('keydown', { key: 'Enter' });
+            await nextTick();
+
+            const panel = findInBody('.dropdown-panel');
+            const lastButton = findInBody('.custom-last') as HTMLButtonElement;
+            expect(panel).not.toBeNull();
+            expect(lastButton).not.toBeNull();
+
+            lastButton.focus();
+            lastButton.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+            await nextTick();
+
+            expect(findInBody('.dropdown-panel')).toBeNull();
         });
     });
 

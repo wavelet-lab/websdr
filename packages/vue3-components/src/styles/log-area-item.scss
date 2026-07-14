@@ -6,9 +6,9 @@
     /* === LOG LEVEL COLORS (customizable) === */
     --log-fatal-color: var(--log-fatal, darkred);
     --log-error-color: var(--log-error, red);
-    --log-warning-color: var(--log-warning, #c07c00);
+    --log-warning-color: var(--log-warning, #8a5a00);
     --log-info-color: var(--log-info, black);
-    --log-debug-color: var(--log-debug, blue);
+    --log-debug-color: var(--log-debug, #174ea6);
 
     /* === TYPOGRAPHY VARIABLES (customizable) === */
     --logarea-item-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
@@ -21,7 +21,7 @@
 .theme-dark {
     --log-fatal-color: var(--log-fatal, #c90000);
     --log-error-color: var(--log-error, #ff4e4e);
-    --log-warning-color: var(--log-warning, #c07c00);
+    --log-warning-color: var(--log-warning, #ffd166);
     --log-info-color: var(--log-info, lightgray);
     --log-debug-color: var(--log-debug, #00bfff);
 }
@@ -68,5 +68,15 @@
 
     .debug {
         color: var(--log-debug-color);
+    }
+
+    .log-area-item__time,
+    .log-area-item__level,
+    .log-area-item__subsystem {
+        margin-right: 0.375rem;
+    }
+
+    .log-area-item__level {
+        font-weight: 700;
     }
 }

@@ -47,7 +47,8 @@ const emit = defineEmits<{
 }>()
 
 // Level options
-const levelOptions: Array<DropdownOptionProps<JournalLogLevel>> = Object.values(JournalLogLevel).map(level => ({ value: level, caption: String(level) }));
+const levelOptions: Array<DropdownOptionProps<JournalLogLevel>> = Object.values(JournalLogLevel)
+    .map(level => ({ value: level, label: String(level) }));
 
 // Refs
 const listRef = ref<typeof List | null>(null);
@@ -105,11 +106,30 @@ const logItemsFiltered: ComputedRef<Array<LogItemKey>> = computed(() => {
         const log = logitem.log;
         return (
             (!subsys.length || log?.subSystem && containsAnySubstr(log.subSystem, subsys)) &&
-            (!level.length || log?.logLevel && level.includes(JournalLogLevel[log.logLevel])) &&
+            (!level.length || log?.logLevel && level.includes(log.logLevel)) &&
             (!search || log?.message && log.message.toLowerCase().includes(search))
         );
     });
 });
+
+const activeFilterCount = computed(() => {
+    return subSysFilter.value.length + levelFilter.value.length + (searchFilter.value.trim() ? 1 : 0);
+});
+
+const filterStatusMessage = computed(() => {
+    const shown = logItemsFiltered.value.length;
+    const total = logItems.value.length;
+
+    if (activeFilterCount.value === 0) {
+        return `${total} log ${total === 1 ? 'entry' : 'entries'} shown.`;
+    }
+
+    return `${shown} of ${total} log ${total === 1 ? 'entry' : 'entries'} shown after filtering.`;
+});
+
+const clearSearch = () => {
+    searchFilter.value = '';
+};
 
 // Determine empty state message
 const emptyStateMessage = computed(() => {
@@ -142,6 +162,13 @@ const emptyStateMessage = computed(() => {
                 <label class="label">Search:</label>
                 <input v-model="searchFilter" class="input" type="text" placeholder="Search in messages..."
                     aria-label="Search in log messages" />
+                <button v-if="searchFilter" class="search-clear-button" type="button" aria-label="Clear log search"
+                    @click="clearSearch">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path
+                            d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                    </svg>
+                </button>
             </div>
 
             <div class="clear-container">
@@ -158,7 +185,11 @@ const emptyStateMessage = computed(() => {
             </div>
         </div>
 
-        <div class="logarea">
+        <div id="log-filter-status" class="filter-status" role="status" aria-live="polite" aria-atomic="true">
+            {{ filterStatusMessage }}
+        </div>
+
+        <div class="logarea" aria-describedby="log-filter-status">
             <List v-if="logItemsFiltered.length > 0" :items="logItemsFiltered" :auto-scroll="props.autoscroll"
                 :item-height="props.rowHeight" :virtual-buffer="props.virtualBuffer" class="log-list" ref="listRef">
                 <template #default="{ item }">

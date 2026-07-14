@@ -71,6 +71,8 @@ const triggerRef = ref<HTMLDivElement>();
 const dropdownRef = ref<HTMLDivElement>();
 const searchInputRef = ref<HTMLInputElement>();
 const textRef = ref<HTMLDivElement>();
+const activeOptionIndex = ref<number>(0);
+const restoreFocusOnClose = ref(true);
 
 // Render/animation state for closing animation
 const isRendered = ref(false); // controls v-if rendering of the panel
@@ -226,6 +228,95 @@ const updatePlacement = async () => {
 };
 
 // Open/close with animation-aware flow
+const enabledOptionIndices = computed<number[]>(() => {
+    return filteredOptions.value
+        .map((option, index) => option.disabled ? -1 : index)
+        .filter(index => index >= 0);
+});
+
+const hasGeneratedOptions = computed(() => filteredOptions.value.length > 0);
+
+const clampActiveOptionIndex = (index: number) => {
+    const indices = enabledOptionIndices.value;
+    if (indices.length === 0) return 0;
+    const firstIndex = indices[0] ?? 0;
+    const lastIndex = indices[indices.length - 1] ?? firstIndex;
+    if (index <= firstIndex) return firstIndex;
+    if (index >= lastIndex) return lastIndex;
+
+    return indices.reduce((closest, current) =>
+        Math.abs(current - index) < Math.abs(closest - index) ? current : closest
+    , firstIndex);
+};
+
+const getInitialActiveOptionIndex = () => {
+    if (!hasGeneratedOptions.value) return 0;
+    const selectedIndex = filteredOptions.value.findIndex(option => props.multiple
+        ? (selectedValues.value as any[])?.includes(option.value)
+        : selectedValues.value === option.value
+    );
+
+    return clampActiveOptionIndex(selectedIndex >= 0 ? selectedIndex : 0);
+};
+
+const focusOptionByIndex = async (index: number) => {
+    activeOptionIndex.value = clampActiveOptionIndex(index);
+    await nextTick();
+
+    let option = dropdownRef.value?.querySelector<HTMLElement>(
+        `.dropdown-option[data-option-index="${activeOptionIndex.value}"]`
+    );
+
+    if (option) {
+        option.focus();
+        option.scrollIntoView({ block: 'nearest' });
+        return;
+    }
+
+    const list = dropdownRef.value?.querySelector<HTMLElement>('.list');
+    if (list && filteredOptions.value.length > 0) {
+        const renderedOption = list.querySelector<HTMLElement>('.dropdown-option');
+        const estimatedRowHeight = renderedOption?.getBoundingClientRect().height
+            || list.scrollHeight / Math.max(1, filteredOptions.value.length)
+            || 40;
+        const targetTop = activeOptionIndex.value * estimatedRowHeight;
+        const centeredTop = targetTop - Math.max(0, (list.clientHeight - estimatedRowHeight) / 2);
+        list.scrollTop = Math.max(0, Math.min(centeredTop, list.scrollHeight - list.clientHeight));
+
+        await nextTick();
+        option = dropdownRef.value?.querySelector<HTMLElement>(
+            `.dropdown-option[data-option-index="${activeOptionIndex.value}"]`
+        );
+
+        if (!option) {
+            await new Promise(resolve => requestAnimationFrame(resolve));
+            option = dropdownRef.value?.querySelector<HTMLElement>(
+                `.dropdown-option[data-option-index="${activeOptionIndex.value}"]`
+            );
+        }
+
+        option?.focus();
+    }
+};
+
+const focusFirstPanelElement = async () => {
+    await nextTick();
+    if (hasGeneratedOptions.value) {
+        activeOptionIndex.value = getInitialActiveOptionIndex();
+        if (props.searchable) {
+            searchInputRef.value?.focus();
+        } else {
+            await focusOptionByIndex(activeOptionIndex.value);
+        }
+        return;
+    }
+
+    const focusable = dropdownRef.value?.querySelector<HTMLElement>(
+        'input:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"]), .dropdown-option:not(.dropdown-option--disabled)'
+    );
+    focusable?.focus();
+};
+
 const openDropdown = async () => {
     if (props.disabled || isOpen.value) return;
 
@@ -242,10 +333,7 @@ const openDropdown = async () => {
     await updatePlacement();
     requestGeometryRecalc();
 
-    if (props.searchable) {
-        await nextTick();
-        searchInputRef.value?.focus();
-    }
+    await focusFirstPanelElement();
 };
 
 // Finalize close after animation
@@ -254,11 +342,16 @@ const finalizeClose = () => {
     isRendered.value = false; // unmount panel
     emit('close');
     searchQuery.value = '';
+    if (restoreFocusOnClose.value) {
+        triggerRef.value?.focus();
+    }
+    restoreFocusOnClose.value = true;
 };
 
-const closeDropdown = () => {
+const closeDropdown = (restoreFocus = true) => {
     if (!isOpen.value && !isRendered.value) return;
 
+    restoreFocusOnClose.value = restoreFocus;
     isOpen.value = false;
 
     const el = dropdownRef.value;
@@ -339,12 +432,6 @@ const onDocumentClick = (event: MouseEvent) => {
 
 const onDocumentKeydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') closeDropdown();
-    if (event.key === 'Enter' || event.key === ' ') {
-        if (!isOpen.value) {
-            event.preventDefault();
-            toggleDropdown();
-        }
-    }
 };
 
 const onClearSelection = (event: Event) => {
@@ -365,6 +452,166 @@ const onOptionSelect = (value: any) => {
     }
 };
 
+const getDocumentTabbableElements = () => {
+    const selector = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])',
+    ].join(',');
+
+    return Array.from(document.querySelectorAll<HTMLElement>(selector))
+        .filter(element => {
+            if (dropdownRef.value?.contains(element)) return false;
+            if (element.getAttribute('aria-disabled') === 'true') return false;
+            if (element.closest('[hidden], [aria-hidden="true"]')) return false;
+            return true;
+        });
+};
+
+const focusAdjacentExternalElement = (backwards: boolean) => {
+    const tabbable = getDocumentTabbableElements();
+    const container = triggerRef.value?.closest('.dropdown-container') ?? triggerRef.value;
+    if (container) {
+        const target = backwards
+            ? [...tabbable].reverse().find(element =>
+                !container.contains(element) &&
+                Boolean(container.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_PRECEDING)
+            )
+            : tabbable.find(element =>
+                !container.contains(element) &&
+                Boolean(container.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING)
+            );
+
+        if (target) {
+            target.focus();
+            return;
+        }
+    }
+
+    const currentIndex = triggerRef.value ? tabbable.indexOf(triggerRef.value) : -1;
+    const nextIndex = currentIndex + (backwards ? -1 : 1);
+    const target = tabbable[nextIndex];
+
+    target?.focus();
+};
+
+const getPanelFocusableElements = () => {
+    if (!dropdownRef.value) return [];
+
+    const selector = [
+        'a[href]',
+        'button:not([disabled])',
+        'input:not([disabled])',
+        'select:not([disabled])',
+        'textarea:not([disabled])',
+        '[tabindex]:not([tabindex="-1"])',
+    ].join(',');
+
+    return Array.from(dropdownRef.value.querySelectorAll<HTMLElement>(selector))
+        .filter(element => {
+            if (element.getAttribute('aria-disabled') === 'true') return false;
+            if (element.closest('[hidden], [aria-hidden="true"]')) return false;
+            return true;
+        });
+};
+
+const closeAndFocusAdjacentExternalElement = (backwards: boolean) => {
+    focusAdjacentExternalElement(backwards);
+    isOpen.value = false;
+    isClosing.value = false;
+    isRendered.value = false;
+    emit('close');
+    searchQuery.value = '';
+};
+
+const moveActiveOption = async (delta: number) => {
+    const indices = enabledOptionIndices.value;
+    if (indices.length === 0) return;
+
+    const currentPosition = Math.max(0, indices.indexOf(activeOptionIndex.value));
+    const nextPosition = Math.min(indices.length - 1, Math.max(0, currentPosition + delta));
+    await focusOptionByIndex(indices[nextPosition] ?? indices[0] ?? 0);
+};
+
+const onGeneratedOptionsKeydown = async (event: KeyboardEvent) => {
+    if (!hasGeneratedOptions.value) return;
+
+    const activeElement = document.activeElement as HTMLElement | null;
+    const isSearchInputActive = activeElement === searchInputRef.value;
+    const isGeneratedOptionActive = Boolean(activeElement?.closest('.dropdown-option'));
+
+    switch (event.key) {
+        case 'ArrowDown':
+            event.preventDefault();
+            await moveActiveOption(1);
+            break;
+        case 'ArrowUp':
+            event.preventDefault();
+            await moveActiveOption(-1);
+            break;
+        case 'PageDown':
+            event.preventDefault();
+            await moveActiveOption(10);
+            break;
+        case 'PageUp':
+            event.preventDefault();
+            await moveActiveOption(-10);
+            break;
+        case 'Home':
+            event.preventDefault();
+            await focusOptionByIndex(enabledOptionIndices.value[0] ?? 0);
+            break;
+        case 'End':
+            event.preventDefault();
+            await focusOptionByIndex(enabledOptionIndices.value[enabledOptionIndices.value.length - 1] ?? 0);
+            break;
+        case 'Enter':
+        case ' ':
+            event.preventDefault();
+            {
+                const activeOption = filteredOptions.value[activeOptionIndex.value];
+                if (activeOption && !activeOption.disabled) {
+                    onOptionSelect(activeOption.value);
+                }
+            }
+            break;
+        case 'Tab':
+            event.preventDefault();
+            if (props.searchable && isGeneratedOptionActive && !isSearchInputActive) {
+                searchInputRef.value?.focus();
+                break;
+            }
+
+            closeAndFocusAdjacentExternalElement(event.shiftKey);
+            break;
+    }
+};
+
+const onCustomContentKeydown = (event: KeyboardEvent) => {
+    if (hasGeneratedOptions.value || event.key !== 'Tab') return;
+
+    const focusableElements = getPanelFocusableElements();
+    if (focusableElements.length === 0) {
+        event.preventDefault();
+        closeAndFocusAdjacentExternalElement(event.shiftKey);
+        return;
+    }
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+    const activeElement = document.activeElement;
+    const isLeavingBackward = event.shiftKey && activeElement === firstElement;
+    const isLeavingForward = !event.shiftKey && activeElement === lastElement;
+
+    if (isLeavingBackward || isLeavingForward) {
+        event.preventDefault();
+        closeAndFocusAdjacentExternalElement(event.shiftKey);
+    }
+};
+
 // Listen for scroll and resize events to update placement
 const onWindowScroll = () => {
     if (!isOpen.value) return;
@@ -382,6 +629,12 @@ const onSearchInput = (event: Event) => {
     const target = event.target as HTMLInputElement;
     searchQuery.value = target.value;
     emit('search', searchQuery.value);
+};
+
+const clearSearchQuery = async () => {
+    searchQuery.value = '';
+    await nextTick();
+    searchInputRef.value?.focus();
 };
 
 // Recalculate display text when component is resized
@@ -405,6 +658,10 @@ const filteredOptions = computed(() => {
 
 watch(() => searchQuery.value, (newQuery) => {
     emit('search', newQuery);
+});
+
+watch(filteredOptions, () => {
+    activeOptionIndex.value = getInitialActiveOptionIndex();
 });
 
 const scrollListenerOptions: AddEventListenerOptions = { capture: true, passive: true };
@@ -469,7 +726,8 @@ const panelStyle = computed<CSSProperties>(() => {
                 'dropdown-trigger--disabled': disabled,
                 'dropdown-trigger--loading': loading
             }
-        ]" :tabindex="disabled ? -1 : 0" @click.stop="toggleDropdown" @keydown.enter.prevent="toggleDropdown"
+        ]" role="button" aria-haspopup="dialog" :aria-expanded="isOpen" :aria-disabled="disabled"
+            :tabindex="disabled ? -1 : 0" @click.stop="toggleDropdown" @keydown.enter.prevent="toggleDropdown"
             @keydown.space.prevent="toggleDropdown">
             <div class="dropdown-content">
                 <!-- Prefix slot -->
@@ -520,15 +778,26 @@ const panelStyle = computed<CSSProperties>(() => {
 
         <!-- Dropdown panel via Teleport -->
         <Teleport to="body" v-if="isRendered">
-            <div ref="dropdownRef" class="dropdown-panel"
+            <div ref="dropdownRef" class="dropdown-panel" role="dialog"
                 :class="[placementClass, { 'dropdown-panel--closing': isClosing }]" :style="panelStyle"
-                @click.stop="closeDropdown">
+                @click.stop="() => closeDropdown()" @keydown="onGeneratedOptionsKeydown"
+                @keydown.capture="onCustomContentKeydown"
+                @keydown.esc.stop.prevent="() => closeDropdown()">
                 <div class="dropdown-panel__content" @click.stop>
 
                     <!-- Search input -->
                     <div v-if="searchable" class="dropdown-search">
-                        <input ref="searchInputRef" v-model="searchQuery" type="text" class="dropdown-search-input"
-                            placeholder="Search..." @input="onSearchInput" @keydown.stop />
+                        <div class="dropdown-search-control">
+                            <input ref="searchInputRef" v-model="searchQuery" type="text" class="dropdown-search-input"
+                                placeholder="Search..." @input="onSearchInput" />
+                            <button v-if="searchQuery" type="button" class="dropdown-search-clear"
+                                aria-label="Clear search" @click.stop="clearSearchQuery" @keydown.stop>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path
+                                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Header slot -->
@@ -542,8 +811,9 @@ const panelStyle = computed<CSSProperties>(() => {
                             <List v-if="filteredOptions && filteredOptions.length > 0" :items="filteredOptions"
                                 :totalCount="props.totalCount" :getItem="props.getItem" :itemHeight="0"
                                 :virtualBuffer="5" :maxHeight="maxHeight">
-                                <template #default="{ item }">
+                                <template #default="{ item, index }">
                                     <DropdownOption :key="item.value" :value="item.value" :label="item.label"
+                                        :option-index="index" :active="activeOptionIndex === index"
                                         :description="item.description" :icon="item.icon" :disabled="item.disabled"
                                         :selected="multiple
                                             ? (selectedValues as any[])?.includes(item.value)

@@ -410,8 +410,8 @@ Core design tokens available for all components:
   --input-border-radius: 6px;
   --input-font-size: 14px;
   --input-border: 1px solid var(--border);
-  --input-focus-border: #80bdff;
-  --input-focus-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  --input-focus-border: var(--app-focus-color, var(--primary-color));
+  --input-focus-shadow: var(--app-focus-ring, 0 0 0 0.125rem var(--primary-shadow));
   --input-transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 
   /* === BUTTON VARIABLES === */
@@ -440,6 +440,27 @@ Core design tokens available for all components:
   --transition-slow: 0.3s ease;
 }
 ```
+
+#### Application Focus Variables
+
+Components use the base `--input-focus-border` and `--input-focus-shadow`
+tokens for keyboard focus states. Applications can define these tokens
+directly, or set higher-level focus variables that the defaults will pick up:
+
+```scss
+:root {
+  --app-focus-color: #007bff;
+  --app-focus-ring: 0 0 0 0.1875rem rgba(0, 123, 255, 0.18);
+}
+
+[data-theme="dark"] {
+  --app-focus-color: #4dabf7;
+  --app-focus-ring: 0 0 0 0.1875rem rgba(77, 171, 247, 0.34);
+}
+```
+
+If `--app-focus-color` or `--app-focus-ring` are not defined, the components
+fall back to the library primary color tokens.
 
 ### Dark Theme Support
 

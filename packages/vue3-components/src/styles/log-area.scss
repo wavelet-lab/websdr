@@ -17,7 +17,7 @@
     --logarea-filter-radius: var(--input-border-radius);
     --logarea-filter-shadow: 0 1px 4px rgba(16, 24, 40, 0.04);
     --logarea-filter-border: var(--logarea-border);
-    --logarea-filter-label-color: var(--muted, #6c757d);
+    --logarea-filter-label-color: var(--dark, #495057);
 
     /* === COLOR VARIABLES (customizable) === */
     --logarea-text-muted: var(--muted, #6c757d);
@@ -64,12 +64,56 @@
         .subsystem-container,
         .level-container,
         .search-container {
+            position: relative;
             display: flex;
             flex-direction: row;
             gap: var(--logarea-filter-gap-container);
             align-items: center;
             min-width: 0;
             flex: 1 1 auto;
+        }
+
+        .search-container .input {
+            padding-right: 2.25rem;
+        }
+
+        .search-clear-button {
+            position: absolute;
+            right: 0.25rem;
+            width: var(--control-clear-size, 1.75rem);
+            height: var(--control-clear-size, 1.75rem);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: 1px solid transparent;
+            border-radius: var(--control-clear-radius, 0.25rem);
+            background: transparent;
+            color: var(--control-clear-color, var(--muted));
+            cursor: pointer;
+            font-size: var(--control-clear-icon-size, 1rem);
+            line-height: 1;
+            transition: color var(--transition-normal), background-color var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
+
+            svg {
+                width: var(--control-clear-icon-size, 1rem);
+                height: var(--control-clear-icon-size, 1rem);
+                display: block;
+            }
+
+            &:hover,
+            &:focus-visible {
+                border-color: transparent;
+                background: var(--control-clear-hover-bg, var(--primary-bg-light));
+                color: var(--control-clear-hover-color, var(--dark));
+            }
+
+            &:focus-visible {
+                border-color: var(--input-focus-border);
+                outline: 2px solid var(--input-focus-border);
+                outline-offset: 0.125rem;
+                box-shadow: var(--input-focus-shadow);
+            }
         }
 
         /* right side clear button */
@@ -140,6 +184,13 @@
 
             &:hover {
                 background: var(--secondary-hover);
+                box-shadow: var(--input-focus-shadow);
+            }
+
+            &:focus-visible {
+                outline: 2px solid var(--input-focus-border);
+                outline-offset: 0.125rem;
+                box-shadow: var(--input-focus-shadow);
             }
 
             .icon {
@@ -182,6 +233,21 @@
         border-radius: 0 0 var(--input-border-radius) var(--input-border-radius);
         padding: var(--logarea-item-padding);
         background: var(--white);
+        box-sizing: border-box;
+    }
+
+    .filter-status {
+        flex: 0 0 auto;
+        min-height: 2rem;
+        display: flex;
+        align-items: center;
+        padding: 0.375rem 0.75rem;
+        border-right: 1px solid var(--logarea-filter-border);
+        border-left: 1px solid var(--logarea-filter-border);
+        background: var(--white);
+        color: var(--logarea-text-muted);
+        font-size: 0.875rem;
+        line-height: 1.25;
         box-sizing: border-box;
     }
 

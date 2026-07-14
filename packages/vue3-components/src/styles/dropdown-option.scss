@@ -30,7 +30,8 @@
     background-color: transparent;
     color: var(--dropdown-text);
 
-    &:hover:not(&--disabled):not(&--selected) {
+    &:hover:not(&--disabled):not(&--selected),
+    &--active:not(&--disabled):not(&--selected) {
         background-color: var(--dropdown-option-item-hover-bg);
     }
 
@@ -156,7 +157,8 @@
    RESPONSIVE & ACCESSIBILITY
    ========================== */
 
-.dropdown-option:focus {
+.dropdown-option:focus,
+.dropdown-option--active {
     outline: 2px solid var(--dropdown-option-selected-text);
     outline-offset: -2px;
     background-color: var(--dropdown-option-selected-bg);

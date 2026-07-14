@@ -1,6 +1,6 @@
 {
     "name": "@websdr/nestjs-microservice",
-    "version": "0.6.2",
+    "version": "0.6.3",
     "description": "This is a NestJS microservice for WebSDR",
     "author": "Timur Davydov <dtv.comp@gmail.com>",
     "license": "MIT",
@@ -33,26 +33,26 @@
         "postpack": "rm -f ./LICENSE"
     },
     "dependencies": {
-        "@websdr/core": "^0.6.2",
+        "@websdr/core": "^0.6.3",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.15.1",
         "passport-jwt": "^4.0.1",
         "ws": "^8.21.0"
     },
     "devDependencies": {
-        "@nestjs/testing": "^11.1.27",
+        "@nestjs/testing": "^11.1.28",
         "@types/node": "^26.0.0",
         "@types/passport-jwt": "^4.0.1",
         "@types/ws": "^8.18.1"
     },
     "peerDependencies": {
-        "@nestjs/common": "^11.1.27",
+        "@nestjs/common": "^11.1.28",
         "@nestjs/config": "^4.0.4",
-        "@nestjs/core": "^11.1.27",
+        "@nestjs/core": "^11.1.28",
         "@nestjs/jwt": "^11.0.2",
-        "@nestjs/microservices": "^11.1.27",
+        "@nestjs/microservices": "^11.1.28",
         "@nestjs/passport": "^11.0.5",
-        "@nestjs/websockets": "^11.1.27"
+        "@nestjs/websockets": "^11.1.28"
     },
     "exports": {
         ".": {
