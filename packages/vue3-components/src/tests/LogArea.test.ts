@@ -192,6 +192,22 @@ describe('LogArea Component', () => {
             expect(visibleItems).toHaveLength(1)
         })
 
+        it('should expose filter result changes as a status message', async () => {
+            const status = wrapper.find('#log-filter-status')
+
+            expect(status.exists()).toBe(true)
+            expect(status.attributes('role')).toBe('status')
+            expect(status.attributes('aria-live')).toBe('polite')
+            expect(status.attributes('aria-atomic')).toBe('true')
+            expect(status.text()).toBe('7 log entries shown.')
+
+            await setControlValue(wrapper, 'Search in log messages', 'SPECIAL')
+            await nextTick()
+
+            expect(status.text()).toBe('1 of 7 log entries shown after filtering.')
+            expect(wrapper.find('.logarea').attributes('aria-describedby')).toBe('log-filter-status')
+        })
+
         it('should trim whitespace in filters', async () => {
             await setControlValue(wrapper, 'Search in log messages', '  spaced  ')
 

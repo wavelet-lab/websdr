@@ -4,6 +4,8 @@ export interface DropdownOptionProps<T = any> {
     label?: string;           // optional, display label for this option
     disabled?: boolean;       // optional, whether this option is disabled
     selected?: boolean;       // optional, whether this option is selected
+    active?: boolean;         // optional, whether this option is the active keyboard item
+    optionIndex?: number;     // optional, index in the rendered options list
     icon?: string;            // optional, icon for this option
     description?: string;     // optional, description for this option
 }
@@ -18,7 +20,9 @@ interface Emits {
 
 const props = withDefaults(defineProps<DropdownOptionProps>(), {
     disabled: false,
-    selected: false
+    selected: false,
+    active: false,
+    optionIndex: undefined
 });
 const emit = defineEmits<Emits>();
 
@@ -30,10 +34,12 @@ const onClick = () => {
 </script>
 
 <template>
-    <div class="dropdown-option" :class="{
+    <div class="dropdown-option" role="option" :aria-selected="selected" :aria-disabled="disabled"
+        :data-option-index="optionIndex" :tabindex="active && !disabled ? 0 : -1" :class="{
         'dropdown-option--selected': selected,
+        'dropdown-option--active': active,
         'dropdown-option--disabled': disabled
-    }" @click.stop="onClick">
+    }" @click.stop="onClick" @keydown.enter.prevent.stop="onClick" @keydown.space.prevent.stop="onClick">
         <div class="dropdown-option-check">
             <slot v-if="selected" name="check-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

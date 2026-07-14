@@ -9,13 +9,13 @@
     --undefined-hover: #808380;
     --success-color: #28a745;
     --success-hover: #218838;
-    --warning-color: #c07c00;
-    --warning-hover: #a47317;
+    --warning-color: #8a5a00;
+    --warning-hover: #674300;
     --error-color: #ff0000;
     --error-hover: #ee0018;
     --danger-color: #b50012;
     --danger-hover: #b70012;
-    --info-color: #17a2b8;
+    --info-color: #174ea6;
 
     /* === NEUTRAL COLORS === */
     --white: #ffffff;
@@ -51,7 +51,7 @@
     /* === LOGGING LEVEL COLORS (for log area component) === */
     --log-fatal: var(--danger-color, darkred);
     --log-error: var(--error-color, red);
-    --log-warning: var(--warning-color, #c07c00);
+    --log-warning: var(--warning-color, #8a5a00);
     --log-info: var(--dark, black);
     --log-debug: var(--info-color, blue);
 }
