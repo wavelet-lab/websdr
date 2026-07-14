@@ -421,6 +421,14 @@ Core design tokens available for all components:
   --button-font-weight: 600;
   --button-transition: background-color 0.15s ease-in-out;
 
+  /* === CLEAR BUTTON VARIABLES === */
+  --control-clear-size: 1.25rem;
+  --control-clear-icon-size: 0.875rem;
+  --control-clear-radius: 0.1875rem;
+  --control-clear-color: var(--dropdown-disabled-text, #9ca3af);
+  --control-clear-hover-color: var(--dropdown-text, #374151);
+  --control-clear-hover-bg: var(--primary-bg-light, rgba(59, 130, 246, 0.1));
+
   /* === SHADOW VARIABLES === */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -461,6 +469,13 @@ directly, or set higher-level focus variables that the defaults will pick up:
 
 If `--app-focus-color` or `--app-focus-ring` are not defined, the components
 fall back to the library primary color tokens.
+
+#### Clear Button Variables
+
+Dropdown clear buttons, searchable dropdown clear buttons, and LogArea search
+clear buttons use the shared `--control-clear-*` tokens. Override these when a
+design system needs a different clear button size, icon size, radius, or hover
+treatment.
 
 ### Dark Theme Support
 

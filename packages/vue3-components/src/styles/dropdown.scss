@@ -24,9 +24,9 @@
     --dropdown-empty-text: var(--text-muted, #6b7280);
 
     /* === SHARED CLEAR BUTTON VARIABLES === */
-    --control-clear-size: 1.75rem;
-    --control-clear-icon-size: 1rem;
-    --control-clear-radius: 0.25rem;
+    --control-clear-size: 1.25rem;
+    --control-clear-icon-size: 0.875rem;
+    --control-clear-radius: 0.1875rem;
     --control-clear-color: var(--dropdown-disabled-text, #9ca3af);
     --control-clear-hover-color: var(--dropdown-text, #374151);
     --control-clear-hover-bg: var(--primary-bg-light, rgba(59, 130, 246, 0.1));
@@ -576,6 +576,12 @@
     width: 100%;
     gap: var(--dropdown-content-gap);
     min-width: 0;
+}
+
+.dropdown-trigger .dropdown-clear {
+    &:focus-visible {
+        outline-offset: 0;
+    }
 }
 
 .dropdown-prefix,
